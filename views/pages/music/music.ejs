@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <% var dir = ''; %>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<script src="<%=dir;%>/music-libs/Base64.js" type="text/javascript"></script>
+	<script src="<%=dir;%>/music-libs/Base64binary.js" type="text/javascript"></script>
+	<script src="<%=dir;%>/music-libs/WebAudioAPI.js" type="text/javascript"></script>
+	<script src="<%=dir;%>/music-libs/audioDetect.js" type="text/javascript"></script>
+	<script src="<%=dir;%>/music-libs/gm.js" type="text/javascript"></script>
+	<script src="<%=dir;%>/music-libs/loader.js" type="text/javascript"></script>
+	<script src="<%=dir;%>/music-libs/plugin.audiotag.js" type="text/javascript"></script>
+	<script src="<%=dir;%>/music-libs/plugin.webaudio.js" type="text/javascript"></script>
+	<script src="<%=dir;%>/music-libs/plugin.webmidi.js" type="text/javascript"></script>
+	<script src="<%=dir;%>/music-libs/dom_request_xhr.js" type="text/javascript"></script>
+	<script src="<%=dir;%>/music-libs/dom_request_script.js" type="text/javascript"></script>
+	<script src="<%=dir;%>/music-libs/midi-export.js" type="text/javascript"></script>
+  <script src="<%=dir;%>/libs/jquery-built.js"></script>
+</head>
+<script>
+var whichSong = window.location.href.indexOf('play2') == -1 ? 'firstsong' : 'songSystem',
+    sngCntr = 0;
+window.onload = function () {
+	MIDI.loadPlugin(
+
+        {
+            audioFormat: 'mp3',
+    		soundfontUrl: "./soundfont/",
+    		instrument: "acoustic_grand_piano",
+    		onprogress: function(state, progress) {
+    			console.log(state, progress);
+    		},
+    		onsuccess: function() {
+      $.get(
+        whichSong,
+        playSong
+      );
+        function playSong(data)
+        {   //return;
+
+
+            console.log(data);
+
+            var parsed = '',
+                parsed = JSON.parse(data),
+                chords = parsed.song;
+
+            chords.forEach(
+                playChord
+            );
+
+            writeableNotes = parsed.writeableSong;
+            write(writeableNotes);
+            delete parsed;
+        }
+
+
+        function playChord (crd)
+        {
+          console.log('playing chord ; sngCntr = ' + sngCntr);
+
+            var isFrst = 1;
+            //sngCntr += .4;
+            $.each(crd.chord, playNote);
+
+
+        }
+
+        function playNote(dl, nt)
+        {
+            var note = nt.note.midi; // the MIDI note
+            var delay = nt.note.time; // play one note every quarter second
+            var velocity = 127; // how hard the note hits
+            // play the note
+            MIDI.setVolume(0, 127);
+            MIDI.noteOn(0, note, velocity, delay);
+            MIDI.noteOff(0, note, delay + .6);
+
+        }
+
+		}
+	});
+
+    var stopPlay = function(ev)
+    {
+        MIDI.stopAllNotes();
+        delete MIDI;
+    }
+
+    $('body').find('.stop-button')
+    .on('click', stopPlay);
+};
+
+var write = function(sng)
+{
+    var noteEventsFile = [];
+    sng.forEach(function(noteObj) {
+        console.log(noteObj);
+        var pushEvts = [];
+        noteEventsFile.push(
+             MidiEvent.noteOn(noteTable[noteObj.note])
+        );
+        noteEventsFile.push(
+             MidiEvent.noteOff(noteTable[noteObj.note] , noteObj.duration)
+        );
+    });
+
+    var writeTrack = new MidiTrack({ events: noteEventsFile  });
+
+    var writeSong  = MidiWriter({ tracks: [writeTrack] });
+    //writeSong.save();
+
+}
+
+</script>
+<body>
+<div class="container">
+    <div class="music">
+      Play music.
+      <button class="stop-button"></button>
+    </div>
+</div>
+</body>
+</html>

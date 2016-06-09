@@ -1,0 +1,46 @@
+{   "writeableDuration": 128,
+    "chords" : [
+        {
+            "name": "primary",
+            "chord": "maj7",
+            "octave": "C4"
+        },
+        {
+            "name": "secondary",
+            "chord":  "m",
+            "octave": "C4"
+        },
+        {
+            "name": "cBar",
+            "chord": "9no5",
+            "octave": "C4"
+        }
+    ],
+    "phases": {
+        "verse": {
+            "barCount": 10,
+            "composition": ["primary","secondary"],
+            "arpegLib": {
+                "primary": {
+                    "offset": 0,
+                    "arr": [0.4, 0.8, 1.6, 1.2]
+                },
+                "secondary": {
+                    "offset": 4,
+                    "arr": [0.4, 0.8, 1.6, 1.2]
+
+                }
+            }
+        },
+        "chorus": {
+            "barCount": 5,
+            "composition": ["cBar"],
+            "arpegLib": {
+                "cBar": {
+                    "offset": 0,
+                    "arr": [0.6, 0.6, 0.6, 0.6]
+                }
+            }
+        }
+    }
+}
