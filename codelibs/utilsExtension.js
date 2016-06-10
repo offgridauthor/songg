@@ -1,7 +1,6 @@
 module.exports = {
     whereWithIndex: function(list, searchTerms)
     {
-
         var retVar;
             _.map(list, function(element, idx){
 
