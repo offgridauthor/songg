@@ -18,105 +18,159 @@
   <script src="<%=dir;%>/libs/jquery-built.js"></script>
 </head>
 <script>
+// Band-aid line to see which version of the song
+// the user (always me, David, at this point) wants
+// to retreive.
 var whichSong = window.location.href.indexOf('play2') == -1 ? 'firstsong' : 'songSystem',
     sngCntr = 0;
+
 window.onload = function () {
+    //Initialize the MIDI playing capability to give a rough idea
+    //of the song as manipulated by server-side scripts.
 	MIDI.loadPlugin(
-
-        {
-            audioFormat: 'mp3',
-    		soundfontUrl: "./soundfont/",
-    		instrument: "acoustic_grand_piano",
-    		onprogress: function(state, progress) {
-    			console.log(state, progress);
-    		},
-    		onsuccess: function() {
-      $.get(
-        whichSong,
-        playSong
-      );
-        function playSong(data)
-        {   //return;
-
-
-            console.log(data);
-
-            var parsed = '',
-                parsed = JSON.parse(data),
-                chords = parsed.song;
-
-            chords.forEach(
-                playChord
+    {
+        /**
+         * Format of the specified soundfont voice
+         * @type {String}
+         */
+        audioFormat: 'mp3',
+        /**
+         * URL for soundfont voices
+         * @type {String}
+         */
+		soundfontUrl: "./soundfont/",
+        /**
+         * Name of soundfont voice to use
+         * @type {String}
+         */
+		instrument: "acoustic_grand_piano",
+        /**
+         * Function to trigger on progression of song
+         *
+         * @param  {object} state    State info
+         * @param  {string} progress Progress info
+         *
+         * @return {undefined}
+         */
+		onprogress: function(state, progress) {
+            console.log('progress');
+		},
+        /**
+         * Function to run after MIDI player plugin is loaded.
+         *
+         * @return {undefined}
+         */
+		onsuccess: function() {
+            //Fetch scripted song data from the server
+            $.get(
+                whichSong,
+                playSong
             );
 
-            writeableNotes = parsed.writeableSong;
-            write(writeableNotes);
-            delete parsed;
-        }
+            /**
+             * Play the song using MIDI player
+             *
+             * @param  {string} data JSON string of song data
+             *
+             * @return {undefined}
+             */
+            function playSong(data)
+            {
+                var parsed = '',
+                    parsed = JSON.parse(data),
+                    chords = parsed.song;
 
+                chords.forEach(
+                    playChord
+                );
 
-        function playChord (crd)
-        {
-          console.log('playing chord ; sngCntr = ' + sngCntr);
+                //Trigger a download of the file to the client
+                //write(parsed.writeableSong);
 
-            var isFrst = 1;
-            //sngCntr += .4;
-            $.each(crd.chord, playNote);
+            }
 
+            /**
+             * Use MIDI player to play a small array of notes
+             *
+             * @param  {array} crd  Small array of notes
+             *
+             * @return {undefined}
+             */
+            function playChord (crd)
+            {
+                var isFrst = 1;
+                $.each(crd.chord, playNote);
+            }
+            /**
+             * Use MIDI player to play a single note.
+             *
+             * @param  {} dl [description]
+             * @param  {[type]} nt [description]
+             * @return {[type]}    [description]
+             */
+            function playNote(dl, nt)
+            {
+                var note = nt.note.midi,    // the MIDI note
+                    delay = nt.note.time,   // midi delay
+                    vol = 127,
+                    velocity = 127;         // how hard the note hits (required; todo: move to server)
 
-        }
+                // play the note
+                MIDI.setVolume(0, vol);
+                MIDI.noteOn(0, note, velocity, delay);
+                MIDI.noteOff(0, note, delay);
+            }
+	    }
+    });
 
-        function playNote(dl, nt)
-        {
-            var note = nt.note.midi; // the MIDI note
-            var delay = nt.note.time; // play one note every quarter second
-            var velocity = 127; // how hard the note hits
-            // play the note
-            MIDI.setVolume(0, 127);
-            MIDI.noteOn(0, note, velocity, delay);
-            MIDI.noteOff(0, note, delay + .6);
-
-        }
-
-		}
-	});
-
+    /**
+     * Stop all notes playing on the MIDI player
+     *
+     * @param  {[type]} ev [description]
+     * @return {[type]}    [description]
+     */
     var stopPlay = function(ev)
     {
         MIDI.stopAllNotes();
-        delete MIDI;
+
     }
 
     $('body').find('.stop-button')
     .on('click', stopPlay);
 };
-
+/**
+ * Create a string of binary data that will be a
+ * download-ready MIDI file
+ *
+ * @param  {array}      sng Writeable-notation musical notes array
+ *
+ * @return {undefined}      Function triggers download in client
+ */
 var write = function(sng)
 {
     var noteEventsFile = [];
     sng.forEach(function(noteObj) {
-        console.log(noteObj);
+
         var pushEvts = [];
         noteEventsFile.push(
-             MidiEvent.noteOn(noteTable[noteObj.note])
+            MidiEvent.noteOn(noteTable[noteObj.note])
         );
         noteEventsFile.push(
-             MidiEvent.noteOff(noteTable[noteObj.note] , noteObj.duration)
+            MidiEvent.noteOff(noteTable[noteObj.note], noteObj.duration)
         );
     });
 
-    var writeTrack = new MidiTrack({ events: noteEventsFile  });
+    var writeTrack = new MidiTrack({ events: noteEventsFile  }),
+        writeSong  = MidiWriter({ tracks: [writeTrack] });
 
-    var writeSong  = MidiWriter({ tracks: [writeTrack] });
-    //writeSong.save();
-
+    writeSong.save();
 }
 
 </script>
 <body>
 <div class="container">
     <div class="music">
-      Play music.
+      Playing script-manipulated song
       <button class="stop-button"></button>
     </div>
 </div>
