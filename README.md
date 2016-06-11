@@ -1,9 +1,9 @@
-The app "Songg" (working title) is a music composition app.
+The app "Songg" (working title) is a music composition app, a work in progress.
 
-This makes use of tonal.js, a music theory library that, for example, allows you to automatically create chords and scales. The other major feature is that it allows you to export midi tracks. These you can drag and drop into other music editing applications into Garage Band.
+This makes use of [tonal.js](https://github.com/danigb/tonal), a music theory library for NodeJS. An example of something tonal.js allows you to do is to generate chords and scales from musical terminology such as "C major". The other major feature of Songg is that it allows you to export midi tracks. These you can drag and drop into other music editing applications such as Garage Band.
 
 To alter the song, directly manipulate the JSON of a song (for example, "Intro.json"). With Songg, the craft of the composition is in writing Manipulators to characterize that raw song data.
 
-A player is currently included but is somewhat provisional; this version of the app is intended for musician-programmers who plan to export the Midi file for further refinement in another application. At a much later stage we might create an in-browser GUI.
+The JSON song file contains the basic theoretical info about the song--key, scale, ocatves of bars--and it is up to your scripting to alter the song as you like.
 
-
+A player is currently included ([MIDI.js](https://github.com/mudcube/MIDI.js/)) but is somewhat provisional; this version of the app is intended for musician-programmers who plan to export the Midi file for further refinement in another application. At a  later stage we might create an in-browser GUI.
