@@ -1,6 +1,5 @@
 
-var bb = require('backbone'),
-    parser = require('note-parser');
+var parser = require('note-parser');
 
 /**
  * Constructs instance of object with class Note
@@ -11,28 +10,38 @@ var bb = require('backbone'),
  * @param  {object} atrs Reference to a set of attributes in
  *                       a song that make up a single note.
  *
- * @return {[type]}      [description]
+ * @return {undefined}
  */
-var Note = function(atrs)
-    {
-        this.ntAttrs = atrs;
-    };
+function Note (atrs)
+{
+    this.ntAttrs = atrs.note;
+};
 
+/**
+ * Set octave
+ *
+ * @param  {number}     newOct Octave to which to set the note.
+ * @return {undefined}
+ */
 Note.prototype.setOct = function(newOct)
 {
+
     letter = this.getLetter();
-    var newReadableNote = letter + newOct,
+    var newReadableNote = letter + newOct.toString(),
         newFreq = parser.freq(newReadableNote),
         newMid = parser.midi(newReadableNote);
-
 
     this.ntAttrs.freq = newFreq;
     this.ntAttrs.oct = newOct;
     this.ntAttrs.midi = newMid;
 
-    //set oct, then adjust frequency.
 }
 
+/**
+ * Return the note's letter in the scale
+ *
+ * @return {string} note letter value
+ */
 Note.prototype.getLetter = function()
 {
     return this.ntAttrs.letter;

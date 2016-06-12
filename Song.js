@@ -19,6 +19,7 @@ var Song = bb.Model.extend(
     },
     /**
      * Set up the instance
+     *
      * @param  {object} attribs Backbone model attributes
      * @param  {object} opts    Options (arguments, basically) for this function
      *
@@ -34,9 +35,9 @@ var Song = bb.Model.extend(
     /**
      * Return a phase by name
      *
-     * @param  {string} pn phase name
+     * @param  {string} pn  phase name
      *
-     * @return object/false   Requested phrase
+     * @return object/false Requested phrase
      */
     getPhase: function(pn){
 
@@ -59,14 +60,17 @@ var Song = bb.Model.extend(
      * to call this function and operate it on a phase of the
      * song.
      *
-     * @param  {[type]}   phsNm  [description]
-     * @param  {Function} fn     [description]
-     * @param  {[type]}   params [description]
-     * @return {[type]}          [description]
+     * @param  {string}   phsNm  Name of the phase on which to perpetrate this function
+     * @param  {Function} fn     Funtion to perpetrate on the phase
+     * @param  {object}   params Will be used as arguments/options for call to fn
+     *
+     * @return {undefined}
      */
     portal: function(phsNm, fn, params){
-
-        return fn(this.getPhase(phsNm));
+        var phz = this.getPhase(phsNm);
+        console.log('in portal; phase len: ' + phz.length);
+        return fn.apply(params.ctxt, [phz]);
+        //return fn(this.getPhase(phsNm));
 
     },
     /**
@@ -78,7 +82,11 @@ var Song = bb.Model.extend(
 
         var phss = this.attributes.phases;
 
-        return (phss && (phss.length !== undefined && phss.length !== null)) ? phss.length : undefined;
+        return (phss
+                && (phss.length !== undefined
+                && phss.length !== null))
+                    ? phss.length
+                    : undefined;
 
     },
     /**
@@ -95,7 +103,7 @@ var Song = bb.Model.extend(
     {
         if (typeof phase === 'object') {
 
-            console.log(this);
+            //console.log(this);
             this.attributes.phases.push(phase);
             this.phaseMeta.push({
                 'name': nm,

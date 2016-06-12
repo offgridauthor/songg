@@ -135,7 +135,6 @@ Inflator.inflate = function(dat)
             pTime = params.phsTm;
 
         nts.forEach (function(nt){
-            //console.log('trying to parse note:', nt);
             var pc = parser.parse(nt);
 
             songTime += arpegCntr[whichNote];

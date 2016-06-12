@@ -1,6 +1,6 @@
 var util = require('util');
 
-var Manipulator = function(){
+function Manipulator () {
     this.name = "Manipulator";
 }
 

@@ -17,21 +17,6 @@
         }
     ],
     "phases": {
-        "verse": {
-            "barCount": 10,
-            "composition": ["primary","secondary"],
-            "arpegLib": {
-                "primary": {
-                    "offset": 0,
-                    "arr": [0.4, 0.8, 1.6, 1.2]
-                },
-                "secondary": {
-                    "offset": 4,
-                    "arr": [0.4, 0.8, 1.6, 1.2]
-
-                }
-            }
-        },
         "chorus": {
             "barCount": 5,
             "composition": ["cBar"],

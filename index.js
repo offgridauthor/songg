@@ -6,10 +6,9 @@ var express = require('express'),
     songData = JSON.parse(dat),
     Song = require('./Song.js'),
     _ = require('underscore'),
-    bb = require('backbone');
+    bb = require('backbone'),
     utilExt = require('./codelibs/utilsExtension.js');
     _._ = utilExt;
-
 
 /**
  * Get Some constant-ish type values available on the app object.
@@ -53,8 +52,8 @@ app.get('/songSystem', function(request, response) {
         // and which args.
         phsElvtr = new PhaseElevator();
 
-    phsElvtr.go(song.portal('verse'));
-    phsElvtr.go(song.portal('chorus'));
+    song.portal('verse', phsElvtr.go, {ctxt: phsElvtr});
+    // phsElvtr.go(song.portal('chorus'));
 
 
     //After the massaging is done, this section obtains the notes in 2 formats
