@@ -1,6 +1,6 @@
 {
   "name": "songg",
-  "version": "0.1",
+  "version": "1.0",
   "description": "A music composition utility",
   "main": "index.js",
   "scripts": {
