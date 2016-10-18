@@ -10,18 +10,7 @@ var util = require('util'),
     modulatorFn = ForEachModulators[modulator],
     Note = require('../Note.js'),
     noteTranslation =
-        {   perBarIdx: [
-                5,
-                5,
-                6,
-                6,
-                6,
-                4,
-                2,
-                3,
-                5,
-                6
-            ]
+        {   perBarIdx: [3,4]
         };
 
 function PhaseElevator ()
@@ -41,20 +30,32 @@ util.inherits(PhaseElevator, PhaseManipulator);
  */
 PhaseElevator.prototype.go = function(phs)
 {
-
+    return;
     this.forEachBar(phs, raiseBar, {}, modulatorFn);
 
     function raiseBar(br, params)
     {
+        //console.log('br---');
+        //console.log(br);
         var idx = params.barIndex;
         _.each(
             br,
             function(ntDat)
             {
+                //console.log('ntDat:', ntDat);
                 var nt = new Note(ntDat);
-                console.log('before (' + idx+ ') :', nt);
-                nt.setOct(noteTranslation.perBarIdx[idx]);
-                console.log('after:', nt);
+                //console.log('before (' + idx+ ') :', nt);
+                if (noteTranslation.perBarIdx.length > 0) {
+                    var modIdz = idx % noteTranslation.perBarIdx.length;
+
+                    console.log('modIdz', modIdz);
+
+                    if (noteTranslation.perBarIdx[modIdz]) {
+                        nt.setOct(noteTranslation.perBarIdx[modIdz]);
+                    }
+                }
+
+                //console.log('after:', nt);
                 nt = {};
                 delete nt;
             }

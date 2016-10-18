@@ -12,6 +12,7 @@
     "express": "~4.9.x",
     "note-parser": "^1.0.0",
     "tonal": "^0.32.1",
+    "tonal-chord": "^0.50.2",
     "underscore": "^1.8.3"
   },
   "engines": {

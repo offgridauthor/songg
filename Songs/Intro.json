@@ -18,12 +18,26 @@
     ],
     "phases": {
         "chorus": {
-            "barCount": 5,
-            "composition": ["cBar"],
+            "measureCount": 3,
+            "composition": ["primary", "secondary", "cBar", "secondary"],
+            "measureLength": 4,
+            "beatLength": 0.9,
+            "melodies": [
+                {
+                    "indexBy": "barCount",
+                    "type": "arpeggio",
+                    "timing": "even",
+                    "composition": [
+                        "primary", "secondary"
+                    ]
+                }
+            ],
             "arpegLib": {
-                "cBar": {
-                    "offset": 0,
-                    "arr": [0.6, 0.6, 0.6, 0.6]
+                "2": {
+                    "type": "even"
+                },
+                "4": {
+                    "arr": [0.25, 0.25, 0.25, 0.2]
                 }
             }
         }

@@ -1,0 +1,34 @@
+{
+    "writeableDuration": 128,
+    "chords": [
+        {
+            "name": "G+add#9",
+            "chord": "+add#9",
+            "octave": "G4"
+        },
+        {
+            "name": "C11",
+            "chord": "11",
+            "octave": "C4"
+        },
+        {
+            "name": "D11b9",
+            "chord": "11b9",
+            "octave": "D4"
+        },
+        {
+            "name": "E13",
+            "chord": "13",
+            "octave": "E4"
+        }
+    ],
+    "phases": {
+        "chorus": {
+            "measureCount": 3,
+            "composition": [
+                "G+add#9","G+add#9"
+            ],
+            "beatLength": 0.2
+        }
+    }
+}

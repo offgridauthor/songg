@@ -2,7 +2,7 @@ var express = require('express'),
     app = express(),
     fs = require('fs'),
     Inflator    = require('./Inflator.js'),
-    dat = fs.readFileSync('./Songs/Intro.json'),
+    dat = fs.readFileSync('./Songs/SimpleRock.json'),
     songData = JSON.parse(dat),
     Song = require('./Song.js'),
     _ = require('underscore'),
@@ -54,15 +54,20 @@ app.get('/songSystem', function(request, response) {
 
     song.portal('verse', phsElvtr.go, {ctxt: phsElvtr});
     // phsElvtr.go(song.portal('chorus'));
-
-
     //After the massaging is done, this section obtains the notes in 2 formats
     //for passing to the client.
+
     var bars = null,
-        //For MIDI.js to play the song; and for
-        bars = song.readBars(),
+    //For MIDI.js to play the song; and for
+
+        bars = song.readBars();
+                console.log('bars as fetched:---');
+                console.log(JSON.stringify(bars));
+
+
+
         //The midi file exporter or writer to export them
-        wrBars = song.getSheetMusicBars(),
+    var wrBars = song.getSheetMusicBars(),
         songData = {
             'song': bars,
             'writeableSong': wrBars

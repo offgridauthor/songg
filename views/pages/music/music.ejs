@@ -64,7 +64,10 @@ window.onload = function () {
             //Fetch scripted song data from the server
             $.get(
                 whichSong,
-                playSong
+                function(dat)
+                {
+                    playOrDL(dat, 'dl');
+                }
             );
 
             /**
@@ -74,18 +77,25 @@ window.onload = function () {
              *
              * @return {undefined}
              */
-            function playSong(data)
+            function playOrDL(data, playOrDL)
             {
                 var parsed = '',
                     parsed = JSON.parse(data),
                     chords = parsed.song;
 
-                chords.forEach(
-                    playChord
-                );
+                if (playOrDL == 'play') {
+                    chords.forEach(
+                        playChord
+                    );
+                } else if (playOrDL =='dl') {
+                    write(parsed.writeableSong);
+                }
+                //play the chord:
+                //
+
 
                 //Trigger a download of the file to the client
-                //write(parsed.writeableSong);
+                //
 
             }
 
@@ -110,15 +120,27 @@ window.onload = function () {
              */
             function playNote(dl, nt)
             {
+
+                // var note = nt.note.midi,    // the MIDI note
+                //     delay = nt.note.time,   // midi delay
+                //     vol = 127,
+                //     velocity = 127;         // how hard the note hits (required; todo: move to server)
+                //
+                // // play the note
+                // MIDI.setVolume(0, vol);
+                // MIDI.noteOn(0, note, velocity, delay);
+                // MIDI.noteOff(0, note, delay + 1.5);
+                //console.log('note time: ' , nt.note.time);
                 var note = nt.note.midi,    // the MIDI note
                     delay = nt.note.time,   // midi delay
                     vol = 127,
                     velocity = 127;         // how hard the note hits (required; todo: move to server)
-
+                console.log('playing a note with delay ' + delay);
                 // play the note
                 MIDI.setVolume(0, vol);
                 MIDI.noteOn(0, note, velocity, delay);
                 MIDI.noteOff(0, note, delay);
+
             }
 	    }
     });
@@ -149,11 +171,12 @@ window.onload = function () {
 var write = function(sng)
 {
     var noteEventsFile = [];
+    //Each item in "sng" is a single note
     sng.forEach(function(noteObj) {
 
         var pushEvts = [];
         noteEventsFile.push(
-            MidiEvent.noteOn(noteTable[noteObj.note])
+            MidiEvent.noteOn(noteTable[noteObj.note], 10)
         );
         noteEventsFile.push(
             MidiEvent.noteOff(noteTable[noteObj.note], noteObj.duration)

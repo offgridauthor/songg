@@ -3,7 +3,8 @@
  */
 
 var bb = require('backbone'),
-    parser = require('note-parser');
+    parser = require('note-parser'),
+    midiUtils = require('midiutils');
 
 var Song = bb.Model.extend(
 {
@@ -29,8 +30,52 @@ var Song = bb.Model.extend(
         var that = this;
         this.phaseMeta = [];
         this.writeableDuration = opts.writeableDuration;
+        // console.log('song duration: ' + this.writeableDuration);
         this.hist = [];
 
+    },
+
+    utils: {
+        dataFromUtilName: function(ntNm)
+        {
+            if (ntNm.indexOf('-') !== -1) {
+                var dat1 = ntNm.split('-');
+                return {
+                    'note': dat1[0],
+                    'oct': dat1[1]
+                };
+            } else {
+                var oct = ntNm.charAt(ntNm.length - 1),
+                    nameWithoutOct = ntNm.substring(0, 2);
+                return {
+                    'note': nameWithoutOct,
+                    'oct': oct
+                };
+            }
+        },
+        writeableFormattedNote: function(ntNm, oct)
+        {
+            var useableNoteName = null,
+                sharpsToFlats = {
+                    'A#': 'Bb',
+                    'B#': 'Cb',
+                    'D#': 'Eb',
+                    'G#': 'Ab',
+                    'F#': 'Gb',
+                    'C#': 'D'
+                };
+
+            if (ntNm.indexOf('#') !== -1) {
+                // console.log('erstwhile');
+                useableNoteName = sharpsToFlats[ntNm];
+            } else {
+                // console.log('hereby');
+
+                useableNoteName = ntNm;
+            }
+
+            return useableNoteName + oct;
+        }
     },
     /**
      * Return a phase by name
@@ -68,7 +113,7 @@ var Song = bb.Model.extend(
      */
     portal: function(phsNm, fn, params){
         var phz = this.getPhase(phsNm);
-        console.log('in portal; phase len: ' + phz.length);
+        // console.log('in portal; phase len: ' + phz.length);
         return fn.apply(params.ctxt, [phz]);
         //return fn(this.getPhase(phsNm));
 
@@ -134,6 +179,8 @@ var Song = bb.Model.extend(
         };
 
         _.each(this.attributes.phases, forEachPhase);
+
+        
         return retVar;
     },
     /**
@@ -152,7 +199,10 @@ var Song = bb.Model.extend(
         {
             var forEachBar = function(br)
             {
+                //get an array of 3 - 7 notes as "nts" var
                 var nts = that.formatWriteableBar(br, phsIdx)
+                //add those into the total song, "bar"ness is lost
+                //this retvar is just an array of notes.
                 retVar = retVar.concat(nts);
             };
 
@@ -176,11 +226,18 @@ var Song = bb.Model.extend(
         var that = this,
         retVar = [];
 
+        // console.log('input bar, by note : ');
+        // _.each(bar, function(nt1){
+        //     console.log('note:' , nt1.note);
+        // });
         _.each(bar, function(nt, idx){
             var formattedNote = that.formatWriteableNote(nt.note, idx, phsIdx);
             retVar.push(formattedNote);
         });
-
+        // console.log('output bar, by note : ');
+        // _.each(retVar, function(nt1){
+        //     console.log('note:' , nt1);
+        // });
         return retVar;
 
     },
@@ -195,13 +252,34 @@ var Song = bb.Model.extend(
      */
     formatWriteableNote: function(nt, ntIdx, phaseIdx)
     {
+        // console.log('line 209 | ' + nt.pc + ' | ' + nt.freq);
+        // console.log(midiUtils.frequencyToNoteNumber(nt.freq));
+        var noteNum = midiUtils.frequencyToNoteNumber(nt.freq),
+            writeableNoteName = midiUtils.noteNumberToName(noteNum),
+            noteData =
+                this.utils.dataFromUtilName(writeableNoteName),
+            correctWriteableNote =
+                this.utils.writeableFormattedNote(noteData['note'], noteData['oct']);
+
+            // console.log(writeableNoteName);
+            // console.log(noteData);
+            // console.log('final , usable note:');
+            // console.log(
+            //     correctWriteableNote
+            // );
+        // console.log('this.writeableDuration:');
+        // console.log(this.writeableDuration);
         var pc = parser.parse(nt),
-            writeableTime = Math.round(nt.time * this.writeableDuration * 2), //durational; so doesnt need base time?
-            writeableNote = "" + nt.letter + nt.oct,
+            writeableTime = Math.round(30 /*nt.time*/ /* * this.writeableDuration * 2 */), //durational; so doesnt need base time?
+            //writeableNote = "" + nt.letter + nt.oct,
+            //writeableNote = noteNum,
+            writeableNote = correctWriteableNote,
             writeData = {
                 note: writeableNote,
                 duration: writeableTime
             };
+            // console.log('writeable data:');
+            // console.log(writeData);
         return writeData;
     },
     /**
