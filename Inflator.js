@@ -126,16 +126,6 @@ Inflator.inflate = function(dat)
 
                 var validateChordNames = function(cordz)
                 {
-                    //console.log('comparing this list', cordz);
-
-                    // var cordzMap = _.map(
-                    //     chords,
-                    //     function(cMapItm){
-                    //         return cMapItm.name;
-                    //     }
-                    // );
-                    ////console.log('against this one:', chords);
-
                     var invalidCordz = [];
 
                     cordz.forEach(function(cordzItm, cordzIdx){
@@ -154,19 +144,19 @@ Inflator.inflate = function(dat)
 
                 validateChordNames(measureChords);
 
-                //console.log('cordz:', measureChords,'measure count:',phase.measureCount);
-
-                //composition loop; for this phase, each named bar (109 for all chords. json)
                 var phaseReceptacle =[],
                     elapsedMsrTime = 0;
                 while (measureCntr < phase.measureCount)
                 {
+                    console.log('begin measure loop');
                     barCntr = 0; // single bar per chord
                     var measure = new String(measureCntr + 1),
                         measureReceptacle = [];
 
                     while (barCntr < measureChords.length) { //an unresolved issue: composition (chord names) len may differ from measure length
                         var chordName = measureChords[barCntr];
+                        // console.log('adding a bar to the measure ()' , chordName);
+                        // console.log('bar cntr:' , barCntr);
                         addBarToMeasure(barCntr, chordName, measureReceptacle, beatLength, chords, songTime, measure, parser);
                         barCntr ++;
                     }
@@ -189,6 +179,8 @@ Inflator.inflate = function(dat)
                         msrLength = beatsThisMeasure * beatLength;
 
                     elapsedMsrTime += msrLength;
+
+                    console.log('elapsed at end of (' + (measureCntr -1) +') :' + elapsedMsrTime);
                 }
                 phsCnt++;
 
@@ -211,12 +203,9 @@ Inflator.inflate = function(dat)
                     { note: [Object] },
                     { note: [Object] } ] ]
                  */
-                //  showPhaseNotes(phaseReceptacle);
                 song.addPhase(phaseReceptacle, pegLib, phaseIdxInSong, phsCnt);
         }
         _.forEach(dat.phases, forEachPhase);
-
-        // Object.keys(phases).forEach(forEachPhase);
 
         return song;
 
@@ -319,7 +308,7 @@ function addBarOffsets(bar, timeToAdd)
         bar1.forEach(
             function(offsetItm1)
             {
-                var tn2, timelessNote2 = tn2 = JSON.parse(JSON.stringify(offsetItm1));
+                var tn2 = JSON.parse(JSON.stringify(offsetItm1));
                 retBar.push(tn2);
             }
         );
@@ -329,6 +318,7 @@ function addBarOffsets(bar, timeToAdd)
 
 
 /**
+ *
  *
  * @param {array} msr Measure of bars; each bar = array with "notes" as
  *                    primary property.
@@ -343,6 +333,12 @@ function addMeasureOffsets(msr, timeToAdd)
 
     return offsetToMeasure;
 
+    /**
+     *
+     *
+     * @param {[type]} msr_ [description]
+     * @param {[type]} mTm  [description]
+     */
     function addMeasureTime(msr_, mTm)
     {
         var newMsr_ = [];
@@ -356,7 +352,9 @@ function addMeasureOffsets(msr, timeToAdd)
                 barItm.notes.forEach(
                     function(offsettable)
                     {
-                        offsettable.note.time = parseInt(offsettable.note.time) + mTm;
+                        // console.log('note time before before:', offsettable.note.time );
+                        offsettable.note.time += mTm;
+                        // console.log('note time after:', offsettable.note.time );
                         newBar.notes.push(offsettable);
                     }
                 );
@@ -405,7 +403,7 @@ function addBarToMeasure(stridx, measureChordName, receptacle, beatLength1, chor
     // var timedToPhase = addOffsets(bar, songTime, measure, stridx, beatLength1);
     // next func call should just add a beat length for each elapsed bar
     // that has come before this one.
-
+    console.log('setting bar to time ', stridx * beatLength1);
     var timedToBar = addBarOffsets(bar, stridx * beatLength1);
 
     receptacle.push({'notes': timedToBar.notes} );

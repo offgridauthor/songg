@@ -48,42 +48,42 @@
     ],
     "phases": {
         "chorus1": {
-            "measureCount": 3,
+            "measureCount": 8,
             "composition": [
                 "G+add#9", "D7b9#11", "G+add#9", "Am6", "D11b9", "C11"
             ],
             "beatLength": 0.8
         },
         "verse1": {
-            "measureCount": 6,
+            "measureCount": 9,
             "composition": [
                 "Fmb6M7","Csus24","Bo"
             ],
             "beatLength": 0.8
         },
         "chorus2": {
-            "measureCount": 2,
+            "measureCount": 8,
             "composition": [
                 "G+add#9", "D7b9#11", "G+add#9", "Am6", "D11b9", "C11"
             ],
             "beatLength": 0.8
         },
         "verse2": {
-            "measureCount": 5,
+            "measureCount": 9,
             "composition": [
                 "Fmb6M7","Csus24","Bo"
             ],
             "beatLength": 0.8
         },
         "chorus3": {
-            "measureCount": 3,
+            "measureCount": 8,
             "composition": [
                 "G+add#9", "D7b9#11", "G+add#9", "Am6", "D11b9", "C11"
             ],
             "beatLength": 0.8
         },
         "verse3": {
-            "measureCount": 5,
+            "measureCount": 9,
             "composition": [
                 "Fmb6M7","Csus24","Bo"
             ],

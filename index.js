@@ -2,7 +2,7 @@ var express = require('express'),
     app = express(),
     fs = require('fs'),
     Inflator    = require('./Inflator.js'),
-    dat = fs.readFileSync('./Songs/SimpleRock.json'),
+    dat = fs.readFileSync('./Songs/AEDDAG.json'),
     songData = JSON.parse(dat),
     Song = require('./Song.js'),
     _ = require('underscore'),
@@ -60,13 +60,12 @@ app.get('/songSystem', function(request, response) {
     var bars = null,
     //For MIDI.js to play the song; and for
 
-        bars = song.readBars();
-                console.log('bars as fetched:---');
-                console.log(JSON.stringify(bars));
+    bars = song.readBars();
 
 
 
-        //The midi file exporter or writer to export them
+
+    //The midi file exporter or writer to export them
     var wrBars = song.getSheetMusicBars(),
         songData = {
             'song': bars,

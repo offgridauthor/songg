@@ -1,0 +1,40 @@
+{
+    "writeableDuration": 128,
+    "chords": [
+        {
+            "name": "Am",
+            "chord": "m",
+            "octave": "A4"
+        },
+        {
+            "name": "Em",
+            "chord": "m",
+            "octave": "E4"
+        },
+        {
+            "name": "Dm",
+            "chord": "m",
+            "octave": "D4"
+        },
+        {   "name": "G",
+            "chord": "M",
+            "octave": "G4"
+        }
+    ],
+    "phases": {
+        "chorus1": {
+            "measureCount": 3,
+            "composition": [
+                "Am","Em","Dm"
+            ],
+            "beatLength": 0.8
+        },
+        "verse1": {
+            "measureCount": 6,
+            "composition": [
+                "Dm","Am","G"
+            ],
+            "beatLength": 0.8
+        }
+    }
+}
