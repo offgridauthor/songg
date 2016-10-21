@@ -148,7 +148,7 @@ Inflator.inflate = function(dat)
                     elapsedMsrTime = 0;
                 while (measureCntr < phase.measureCount)
                 {
-                    console.log('begin measure loop');
+                    // console.log('begin measure loop');
                     barCntr = 0; // single bar per chord
                     var measure = new String(measureCntr + 1),
                         measureReceptacle = [];
@@ -180,7 +180,7 @@ Inflator.inflate = function(dat)
 
                     elapsedMsrTime += msrLength;
 
-                    console.log('elapsed at end of (' + (measureCntr -1) +') :' + elapsedMsrTime);
+                    //console.log('elapsed at end of (' + (measureCntr -1) +') :' + elapsedMsrTime);
                 }
                 phsCnt++;
 
@@ -403,7 +403,7 @@ function addBarToMeasure(stridx, measureChordName, receptacle, beatLength1, chor
     // var timedToPhase = addOffsets(bar, songTime, measure, stridx, beatLength1);
     // next func call should just add a beat length for each elapsed bar
     // that has come before this one.
-    console.log('setting bar to time ', stridx * beatLength1);
+    //console.log('setting bar to time ', stridx * beatLength1);
     var timedToBar = addBarOffsets(bar, stridx * beatLength1);
 
     receptacle.push({'notes': timedToBar.notes} );
@@ -455,10 +455,10 @@ function showPhaseNotes(phsData)
     phsData.forEach(
         function(arr){
             var nNt = 0;
-            console.log('array ' + n + ' of note objects');
+            //console.log('array ' + n + ' of note objects');
             arr.forEach(function(noteObj){
-                console.log('note object ' + nNt );
-                console.log(noteObj.note);
+                // console.log('note object ' + nNt );
+                // console.log(noteObj.note);
                 nNt ++ ;
             });
             n++;

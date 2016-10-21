@@ -4,7 +4,10 @@
 
 var bb = require('backbone'),
     parser = require('note-parser'),
-    midiUtils = require('midiutils');
+    midiUtils = require('midiutils'),
+    fs = require('fs'),
+    Midi = require('jsmidgen');
+
 
 var Song = bb.Model.extend(
 {
@@ -30,7 +33,6 @@ var Song = bb.Model.extend(
         var that = this;
         this.phaseMeta = [];
         this.writeableDuration = opts.writeableDuration;
-        // console.log('song duration: ' + this.writeableDuration);
         this.hist = [];
 
     },
@@ -53,6 +55,19 @@ var Song = bb.Model.extend(
                 };
             }
         },
+        getMidgenNote: function(ntNm)
+        {
+            if (ntNm.indexOf('-') !== -1) {
+
+                    var dat1 = ntNm.split('-');
+                    return dat1[0] + dat1[1];
+
+            };
+
+            return ntNm;
+
+
+        },
         writeableFormattedNote: function(ntNm, oct)
         {
             var useableNoteName = null,
@@ -66,11 +81,8 @@ var Song = bb.Model.extend(
                 };
 
             if (ntNm.indexOf('#') !== -1) {
-                // console.log('erstwhile');
                 useableNoteName = sharpsToFlats[ntNm];
             } else {
-                // console.log('hereby');
-
                 useableNoteName = ntNm;
             }
 
@@ -100,6 +112,7 @@ var Song = bb.Model.extend(
             return false;
         }
     },
+
     /**
      * Pass a phase name, function, and args for the function
      * to call this function and operate it on a phase of the
@@ -112,11 +125,9 @@ var Song = bb.Model.extend(
      * @return {undefined}
      */
     portal: function(phsNm, fn, params){
-        var phz = this.getPhase(phsNm);
-        // console.log('in portal; phase len: ' + phz.length);
-        return fn.apply(params.ctxt, [phz]);
-        //return fn(this.getPhase(phsNm));
 
+        var phz = this.getPhase(phsNm);
+        return fn.apply(params.ctxt, [phz]);
     },
     /**
      * Calculate the number of phases in the song
@@ -180,7 +191,7 @@ var Song = bb.Model.extend(
 
         _.each(this.attributes.phases, forEachPhase);
 
-        
+
         return retVar;
     },
     /**
@@ -194,23 +205,26 @@ var Song = bb.Model.extend(
     {
         var retVar = [],
             that = this;
-
+        var mod = that.getFileModel('first-measured');
         var forEachWrPhase = function(wrphs, phsIdx)
         {
             var forEachBar = function(br)
             {
                 //get an array of 3 - 7 notes as "nts" var
-                var nts = that.formatWriteableBar(br, phsIdx)
+                var nts = that.formatWriteableBar(br, phsIdx);
+
+                that.addChordToFile(mod, br);
                 //add those into the total song, "bar"ness is lost
                 //this retvar is just an array of notes.
                 retVar = retVar.concat(nts);
             };
-
             _.each(wrphs, forEachBar);
         }
 
         _.each(this.attributes.phases, forEachWrPhase);
+        this.saveModel(mod);
         return retVar;
+
     },
     /**
      * Return notes of the bar in a reduced form readily convertable
@@ -230,6 +244,7 @@ var Song = bb.Model.extend(
         // _.each(bar, function(nt1){
         //     console.log('note:' , nt1.note);
         // });
+
         _.each(bar, function(nt, idx){
             var formattedNote = that.formatWriteableNote(nt.note, idx, phsIdx);
             retVar.push(formattedNote);
@@ -270,7 +285,7 @@ var Song = bb.Model.extend(
         // console.log('this.writeableDuration:');
         // console.log(this.writeableDuration);
         var pc = parser.parse(nt),
-            writeableTime = Math.round(30 /*nt.time*/ /* * this.writeableDuration * 2 */), //durational; so doesnt need base time?
+            writeableTime = 118, //durational; so doesnt need base time?
             //writeableNote = "" + nt.letter + nt.oct,
             //writeableNote = noteNum,
             writeableNote = correctWriteableNote,
@@ -294,6 +309,94 @@ var Song = bb.Model.extend(
     {
         return {chord: bar};
     },
+
+    /**
+     * Get file model for storing notes
+     *
+     * @return {[type]} [description]
+     */
+    getFileModel: function(name)
+    {
+        console.log('file name'+ name+ '<-');
+        var model = {
+            file: new Midi.File(),
+            track: new Midi.Track(),
+            name: './'+ name + '.midi'
+        };
+
+        model.file.addTrack(model.track);
+
+        return model;
+    },
+
+    /**
+     *
+     * @param {object} model Model from midgen
+     */
+    addChordToFile: function(model, chord, duration)
+    {
+        //console.log('duration: ' + duration);
+        if (!duration) {
+            duration = 64;
+        }
+        //console.log('duration: ' + duration);
+        var that = this;
+        //console.log('ch-------');
+        //console.log(chord);
+        //getMidgenNote
+        _.each(chord, function(itm) {
+            var nDat = itm.note;
+            // console.log(nDat);
+            // that.getMidgenNote
+            console.log();
+            var renderableNote = nDat.letter + nDat.acc + new String(nDat.oct);
+            var tm = Math.round(100 * nDat.time);
+            that.addNoteToFile(model, 0, renderableNote, tm, duration);
+
+        });
+
+    },
+
+    // e.g. 0, 'c4', 64
+    addNoteToFile: function(model, channel, pitch, duration, tm){
+        pitch = pitch.toLowerCase();
+        console.log("model.track.noteOn(" + channel + ", " + pitch + ", " + tm + ");");
+        console.log("model.track.noteOff(" + channel + ", " + pitch + ", " + new String(duration) + ");");
+
+        model.track.addNote(channel, pitch, duration, tm);
+        //model.track.addNoteOff(channel, pitch.toLowerCase(), duration);
+
+    },
+
+    saveModel: function(model)
+    {
+        console.log('model.file.name:' + model.name, typeof(model.file.toBytes()));
+        var buff = fs.createWriteStream('temp-file.midi');
+        console.log(model.file.toBytes());
+        //buff.write(model.file.toBytes());
+        fs.writeFileSync('temp2.mid', model.file.toBytes(), 'binary');
+        buff.end();
+
+
+        var Midi = require('jsmidgen');
+
+        var file = new Midi.File();
+        var track = new Midi.Track();
+        file.addTrack(track);
+
+        track.addNote(0, 'c4', 64);
+        track.addNote(0, 'd4', 64);
+        track.addNote(0, 'e4', 64);
+        track.addNote(0, 'f4', 64);
+        track.addNote(0, 'g4', 64);
+        track.addNote(0, 'a4', 64);
+        track.addNote(0, 'b4', 64);
+        track.addNote(0, 'c5', 64);
+
+        fs.writeFileSync('test1.mid', model.file.toBytes(), 'binary');
+
+        //fs.writeFileSync(model.file.name, model.file.toBytes(), 'binary');
+    }
 
 });
 
