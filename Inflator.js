@@ -4,6 +4,11 @@ var util = require('util'),
     Song = require('./Song.js'),
     tc = require('tonal-chord');
 
+    var defaultDelay = 64,
+        absoTimeIdx = 'absoTime',
+        relativeTimeIdx = 'relativeTime',
+        song;
+
     function getTonalNotes(chordLibDat)
     {
         // import chord from 'tonal-chord';
@@ -39,176 +44,99 @@ var Inflator = function () {
  */
 Inflator.inflate = function(dat)
 {
-    //Load data into vars for convenience.
-    var song = null,
-        song = new Song(null, {writeableDuration: dat.writeableDuration}),
-        chords = dat.chords,
-        /**
-            Chords lib; array of objects each with this structure:
-            {
-                name: "mainChord"   //your chosen name for the chord
-                chord: "maj",       // according to tonal.js conventions
-                octave: "C4"        //according to tonal.js convention
-            }
-        */
-        /*
-            The blueprint that makes use of the chords library
-            Array of objects in which each item is roughly equivalent to
-            a chunk of song such as a chorus, verse, or bridge.
-            Each chunk is one iteration of that; so you would probably have
-            chorus1, verse1, chorus2, verse2, and so forth
-         */
-        songTime = 0,
-        phsCnt = 0;
-
-
     return makeDefaultBars();
 
     function makeDefaultBars()
     {
-        /*
-            Each phase names a song phase such as chorus1, verse1, bridge,
-            chorus2, verse2, bridge2.
-            For each such key, contained in it is an object with blueprint
-            data. The blueprint makes use of this particular song's chord
-            library, defined separately in the json file (see above for the
-            structure of both the phase objects and the chord lib items).
-         */
-        /**
-         * Procedure that conducts a basic construction according to the blueprint data.
-         * Manipulators are introduced elsewhere.
-         *
-         * @param  {string} phase Phase element. Structure of that POJO:
-         * {
 
-                 "measureCount": 3, user-set number of measures in phase
-                 "composition": ["primary", "cBar", "secondary"],
-                                The inflator runs through a manipulator up to [measureCount]
-                                times for each of these names--which it seeks in the chord
-                                library.
+        song = new Song(null);
 
-                 "arpegLib": {  For this phase only, time data for making the initial
-                                (pre-manipulation) midi-ish note
+        var chords = dat.chords,
+            phsCnt = 0,
+            phsTime = 0;
 
-                     "cBar": {
-                         "offset": 0,
-                         "arr": [0.2, 0.2, 0.2, 0.2, 0.2]
-                     },
-                     "primary": {
-                         "offset": 1,
-                         "arr": [0.2, 0.2, 0.2, 0.2]
-                     },
-                     "secondary": {
-                         "offset": 2,
-                         "arr": [0.2, 0.2, 0.2, 0.2]
-                     }
-                 }
-
-         * }
-         * @param  {integer} idx    Index of element; ie order
-         * @param  {object} allKeys Reference to master list, i.e. the outer thing we are looping through
-         *
-         * @return {undefined}
-         */
-        function forEachPhase (phase, phaseIdxInSong, allKeys)
-        {
-
-            var phaseReceptacle = [], //reset temporary var for each laid out phase
-                phaseTime = 0, //reset the ticker for this phase
-
-                //cache a few properties for convenience
-                measureChords = phase.composition,
-                pegLib = phase.arpegLib,
-                // phase.measureLength,
-                beatLength = phase.beatLength,
-                measureCntr = 0;
-
-
-                var validateChordNames = function(cordz)
-                {
-                    var invalidCordz = [];
-
-                    cordz.forEach(function(cordzItm, cordzIdx){
-                        var crdDat = _.where(chords, {name: cordzItm});
-                        if (crdDat.length <= 0) {
-                            //console.log('invalid chord:', cordzItm);
-                            invalidCordz.push(cordzItm);
-                        }
-                    });
-
-                    if (invalidCordz.length > 0) {
-                        throw new Error('Invalid chords found; not in the library: ', invalidCordz);
-
-                    }
-                }
-
-                validateChordNames(measureChords);
-
-                var phaseReceptacle =[],
-                    elapsedMsrTime = 0;
-                while (measureCntr < phase.measureCount)
-                {
-                    // console.log('begin measure loop');
-                    barCntr = 0; // single bar per chord
-                    var measure = new String(measureCntr + 1),
-                        measureReceptacle = [];
-
-                    while (barCntr < measureChords.length) { //an unresolved issue: composition (chord names) len may differ from measure length
-                        var chordName = measureChords[barCntr];
-                        // console.log('adding a bar to the measure ()' , chordName);
-                        // console.log('bar cntr:' , barCntr);
-                        addBarToMeasure(barCntr, chordName, measureReceptacle, beatLength, chords, songTime, measure, parser);
-                        barCntr ++;
-                    }
-
-                    withOffsets = addMeasureOffsets(measureReceptacle, elapsedMsrTime);
-
-                    withOffsets.forEach(
-                        function(obj)
-                        {
-                            phaseReceptacle.push(obj.notes);
-                        }
-                    );
-
-                    measureCntr++;
-
-                    //This variables illustrate inflator structure.
-                    var beatsPerBar = measureChords.length,
-                        barsThisMeasure = barCntr,
-                        beatsThisMeasure = beatsPerBar * barsThisMeasure,
-                        msrLength = beatsThisMeasure * beatLength;
-
-                    elapsedMsrTime += msrLength;
-
-                    //console.log('elapsed at end of (' + (measureCntr -1) +') :' + elapsedMsrTime);
-                }
-                phsCnt++;
-
-
-                /*
-
-                How it should look , phase when
-                added to song
-
-                [ [ { note: [Object] },
-                    { note: [Object] },
-                    { note: [Object] },
-                    { note: [Object] } ],
-                  [ { note: [Object] },
-                    { note: [Object] },
-                    { note: [Object] },
-                    { note: [Object] } ],
-                  [ { note: [Object] },
-                    { note: [Object] },
-                    { note: [Object] },
-                    { note: [Object] } ] ]
-                 */
-                song.addPhase(phaseReceptacle, pegLib, phaseIdxInSong, phsCnt);
-        }
-        _.forEach(dat.phases, forEachPhase);
+        _.forEach(dat.phases, function(a,b,c){
+            var lengthOfAddedPhase = forEachPhase(a,b, phsTime, chords, phsCnt);
+            phsCnt++;
+            phsTime += lengthOfAddedPhase;
+        });
 
         return song;
+    }
+    /**
+     * Procedure that conducts a basic construction according to the blueprint data.
+     * Manipulators are introduced elsewhere.
+     *
+     */
+    function forEachPhase (phase, phaseIdxInSong, phaseTimeInSong, chords, phsCnt)
+    {
+        var phaseReceptacle = [], //reset temporary var for each laid out phase
 
+            // cache a few properties for convenience
+            measureChords = phase.composition,
+            pegLib = phase.arpegLib,
+            // phase.measureLength,
+            beatLength = phase.beatLength,
+            measureCntr = 0,
+            calculatedPhaseTime = beatLength * measureChords.length * phase.measureCount,
+            relTime = phase.midiBeatLength,
+            dur = phase.chordDuration;
+
+            validateChordNames(measureChords, chords);
+
+            var phaseReceptacle =[],
+                elapsedMsrTime = 0;
+
+            while (measureCntr < phase.measureCount)
+            {
+                // console.log('begin measure loop; measure countr', measureCntr + "\n" + '<--------new measure -------------------->');
+                barCntr = 0; // single bar per chord
+
+                var measure = new String(measureCntr + 1),
+                    measureReceptacle = [];
+
+                while (barCntr < measureChords.length) { //an unresolved issue: composition (chord names) len may differ from measure length
+                    var chordName = measureChords[barCntr];
+                    // console.log('adding a bar to the measure ()' , chordName);
+                    // console.log('bar cntr:' , barCntr);
+                    console.log('another bar; idx:' , barCntr);
+                    //@todo: This haphazard function call is a major suck.
+                    // Reduce num of args by breaking up work.
+                    // Place as many calculations as possible into it, removing
+                    // them from above. Perhaps just pass it the phase data
+                    // or something.
+                    addBarToMeasure(barCntr, chordName, measureReceptacle, beatLength, chords, measure, parser, relTime, dur);
+                    barCntr ++;
+                }
+                var elapsedTime = (elapsedMsrTime + phaseTimeInSong);
+                console.log('elapsed measure time:' + elapsedMsrTime);
+                console.log('phs time:', phaseTimeInSong);
+                console.log('elapsed time:', elapsedTime);
+                console.log();
+                measureReceptacle = addMeasureOffsets(measureReceptacle, elapsedTime);
+                withOffsets = measureReceptacle;
+                withOffsets.forEach(
+                    function(obj)
+                    {
+                        phaseReceptacle.push(obj.notes);
+                    }
+                );
+
+                measureCntr++;
+
+                //These variables illustrate inflator structure.
+                var barsThisMeasure = measureChords.length,
+                    beatsThisMeasure = barsThisMeasure,
+                    msrLength = beatsThisMeasure * beatLength;
+
+                    elapsedMsrTime += msrLength;
+                //console.log('elapsed at end of (' + (measureCntr -1) +') :' + elapsedMsrTime);
+            }
+
+            //showPhaseNotes(phaseReceptacle);
+            song.addPhase(phaseReceptacle, pegLib, phaseIdxInSong, phsCnt);
+            validateCountedTime(elapsedMsrTime, calculatedPhaseTime);
+            return elapsedMsrTime;
     }
 
     function stampNote(nt, meta)
@@ -249,17 +177,13 @@ function timelessBar(noteNames, parser1)
          * note objects. These are collected in timless.
          *
          */
-        //console.log('p1 - in tbar', parser1);
+
         var timelessNote1 = timelessNote(itm /* note name */, parser1);
         timeless.push(timelessNote1);
     });
 
     return timeless;
 
-    function simultaneousNotes()
-    {
-
-    }
 }
 
 function timelessNote(ntNm, prs){
@@ -275,20 +199,26 @@ function timelessNote(ntNm, prs){
 }
 
 /**
- *
+ * Set each note in a bar to timeToAdd
  * @param {array} bar Array of notes with null time and delay
- * @param {[type]} phaseTime [description]
+ * @param {Number} timeToAdd Time to which to set each note of bar
  *
- * addOffsets(bar, phaseTime, measure, strumIdx, beatLength);
+ *
  */
-function addBarOffsets(bar, timeToAdd)
+function addBarOffsets(bar, absoTime, midiRelTime, midiDur)
 {
     var measureLength = 1,
         barCopied = copyBar(bar),
-        offsetToMeasure = addBarTime(barCopied, timeToAdd),
-        retVar = { 'notes': offsetToMeasure };
+        offsetToMeasure = addBarTime(barCopied, absoTime),
+        barCopiedAgain = copyBar(offsetToMeasure),
+        withRelativeTimes = addRelBarTimes(barCopiedAgain, midiRelTime, midiDur),
+        retVar = { 'notes': withRelativeTimes };
+        //showBarNotes(retVar.notes);
 
     return retVar;
+
+}
+
 
     function addBarTime(bar123, bTm)
     {
@@ -296,12 +226,27 @@ function addBarOffsets(bar, timeToAdd)
         bar123.forEach(
             function(offsettable)
             {
-                offsettable.time = bTm
+                offsettable[absoTimeIdx] = bTm;
                 newBar.push({'note': offsettable});
             }
         );
         return newBar;
     }
+
+    function addRelBarTimes(bar123, relTime, dur)
+    {
+        var newBar = [];
+        bar123.forEach(
+            function(obj)
+            {   var offsettable = obj.note;
+                offsettable[relativeTimeIdx] = relTime;
+                offsettable['duration'] = dur;
+                newBar.push({'note': offsettable});
+            }
+        );
+        return newBar;
+    }
+
 
     function copyBar(bar1){
         var retBar = [];
@@ -314,8 +259,6 @@ function addBarOffsets(bar, timeToAdd)
         );
         return retBar;
     }
-}
-
 
 /**
  *
@@ -334,10 +277,12 @@ function addMeasureOffsets(msr, timeToAdd)
     return offsetToMeasure;
 
     /**
+     * Add specified time to each note in the specified measure
      *
+     * @param {Object} msr_ The Measure
+     * @param {Number} mTm  Time to add to each note in the measure
      *
-     * @param {[type]} msr_ [description]
-     * @param {[type]} mTm  [description]
+     * @return {undefined} _
      */
     function addMeasureTime(msr_, mTm)
     {
@@ -353,7 +298,7 @@ function addMeasureOffsets(msr, timeToAdd)
                     function(offsettable)
                     {
                         // console.log('note time before before:', offsettable.note.time );
-                        offsettable.note.time += mTm;
+                        offsettable.note[absoTimeIdx] += mTm;
                         // console.log('note time after:', offsettable.note.time );
                         newBar.notes.push(offsettable);
                     }
@@ -364,6 +309,12 @@ function addMeasureOffsets(msr, timeToAdd)
         return newMsr_;
     }
 
+    /**
+     * Copy the specified measure; deep copy
+     *
+     * @param  {Object} m1 Measure to copy
+     * @return {undefined} _
+     */
     function copyMeasure(m1){
         var retM = [];
         m1.forEach(
@@ -377,17 +328,13 @@ function addMeasureOffsets(msr, timeToAdd)
     }
 }
 
-
-
-function addBarToMeasure(stridx, measureChordName, receptacle, beatLength1, chordLib, songTime, measure, p1)
+function addBarToMeasure(stridx, measureChordName, receptacle, beatLength1, chordLib, measure, p1, relTime, dur)
 {
 
-    // console.log('making measure ', stridx, 'chord name:', measureChordName);
-    var //error, here: chord name is being gotten by stridx; wrong
-        strumTime = beatLength1 * stridx,
+    var strumTime = beatLength1 * stridx,
         chordLibDat = _.where(chordLib, {name: measureChordName})[0],
         chordNoteList = getTonalNotes(
-                chordLibDat
+            chordLibDat
         );
 
     var bar = timelessBar(
@@ -400,49 +347,18 @@ function addBarToMeasure(stridx, measureChordName, receptacle, beatLength1, chor
         stampNote(nt, noteMetaData);
     });
 
-    // var timedToPhase = addOffsets(bar, songTime, measure, stridx, beatLength1);
+    // var timedToPhase = addOffsets(bar,  measure, stridx, beatLength1);
     // next func call should just add a beat length for each elapsed bar
     // that has come before this one.
-    //console.log('setting bar to time ', stridx * beatLength1);
-    var timedToBar = addBarOffsets(bar, stridx * beatLength1);
+
+    console.log('bar index:', stridx, 'beat length:', beatLength1);
+    console.log('setting bar to time ', stridx * beatLength1);
+
+    var timedToBar = addBarOffsets(bar, stridx * beatLength1, relTime, dur);
 
     receptacle.push({'notes': timedToBar.notes} );
 
 }
-
-/*
-
-"C11",
-"D11b9",
-"E13"
-
-
-"melodies": [
-    {
-        "indexBy": "barCount",
-        "type": "arpeggio",
-        "timing": "even",
-        "composition": [
-            "G+add#9",
-            "C11"
-        ]
-    }
-],
-"arpegLib": {
-    "2": {
-        "type": "even"
-    },
-    "4": {
-        "arr": [
-            0.25,
-            0.25,
-            0.25,
-            0.2
-        ]
-    }
-}
-
- */
 
 function makeNoteMetaData (bn)
 {
@@ -455,16 +371,63 @@ function showPhaseNotes(phsData)
     phsData.forEach(
         function(arr){
             var nNt = 0;
-            //console.log('array ' + n + ' of note objects');
+            console.log('array ' + n + ' of note objects');
             arr.forEach(function(noteObj){
-                // console.log('note object ' + nNt );
-                // console.log(noteObj.note);
+                console.log('note object ' + nNt );
+                console.log(noteObj.note);
                 nNt ++ ;
             });
             n++;
         }
     );
-}
+    }
+
+    /**
+     *
+     *
+     * @param  {[type]} phsData [description]
+     * @return {[type]}         [description]
+     */
+    function showBarNotes(barData)
+    {
+        var n = 0;
+        console.log("A bar, note by note:");
+        barData.forEach(
+            function(obj){
+
+                var nNt = obj.note;
+                console.log('note object ');
+                console.log(nNt);
+
+            }
+        );
+    }
+
+    function validateCountedTime(cntd, calcd)
+    {
+        if (cntd !== calcd) {
+            throw new Error('Counted phase time does not match projected phase time');
+        }
+    }
+
+    function validateChordNames (cordz, songChords)
+    {
+        var invalidCordz = [];
+
+        cordz.forEach(function(cordzItm, cordzIdx){
+            var crdDat = _.where(songChords, {name: cordzItm});
+            if (crdDat.length <= 0) {
+                //console.log('invalid chord:', cordzItm);
+                invalidCordz.push(cordzItm);
+            }
+        });
+
+        if (invalidCordz.length > 0) {
+            throw new Error('Invalid chords found; not in the library: ', invalidCordz);
+
+        }
+    }
+
 
 
 module.exports = Inflator;

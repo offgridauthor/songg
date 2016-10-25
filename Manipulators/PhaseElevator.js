@@ -48,7 +48,7 @@ PhaseElevator.prototype.go = function(phs)
                 if (noteTranslation.perBarIdx.length > 0) {
                     var modIdz = idx % noteTranslation.perBarIdx.length;
 
-                    console.log('modIdz', modIdz);
+                    //console.log('modIdz', modIdz);
 
                     if (noteTranslation.perBarIdx[modIdz]) {
                         nt.setOct(noteTranslation.perBarIdx[modIdz]);

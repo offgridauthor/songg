@@ -62,14 +62,13 @@ app.get('/songSystem', function(request, response) {
 
     bars = song.readBars();
 
-
-
-
     //The midi file exporter or writer to export them
-    var wrBars = song.getSheetMusicBars(),
+    var savedFile = song.saveMidi(),
         songData = {
             'song': bars,
-            'writeableSong': wrBars
+            // 'writeableSong': wrBars, //see song model for further comments; why
+                                        // this is remarked out.
+            'midiLink': savedFile.get('outputLink')
         };
 
     app.jsonSong = JSON.stringify(songData);

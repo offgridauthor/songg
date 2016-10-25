@@ -20,6 +20,7 @@ var Song = bb.Model.extend(
         title: null,
         phases: new Array(), //array of Phase objects; parts of the song such as verse, chorus, and bridge.
         writeablePhases: new Array(), //deprecated; vestige of the first version of the code
+        outputDir: 'public/outputMidi'
     },
     /**
      * Set up the instance
@@ -29,10 +30,9 @@ var Song = bb.Model.extend(
      *
      * @return void
      */
-    initialize: function(attribs, opts){
+    initialize: function(attribs){
         var that = this;
         this.phaseMeta = [];
-        this.writeableDuration = opts.writeableDuration;
         this.hist = [];
 
     },
@@ -65,8 +65,6 @@ var Song = bb.Model.extend(
             };
 
             return ntNm;
-
-
         },
         writeableFormattedNote: function(ntNm, oct)
         {
@@ -195,38 +193,42 @@ var Song = bb.Model.extend(
         return retVar;
     },
     /**
-     * "Sheet music" means a spare notation that can be
-     * converted to binary and sent down to the user as a
-     * MIDI file (as opposed to playing in browser).
+     * Save to a midi file
      *
-     * @return {array} Array of notes
+     * @return {Backbone Model instance}
      */
-    getSheetMusicBars: function()
+    saveMidi: function()
     {
-        var retVar = [],
-            that = this;
-        var mod = that.getFileModel('first-measured');
+        // retVar and associated code lines (currently remarked out)
+        // were a way of using the midi file lib called midijs to
+        // write files; replaced it with the slightly more versatile
+        // js midgen. no return var is needed at this level because
+        // js midgen writes to file. Later the file address is passed
+        // to the front end to be used as an href for download.
+
+        var that = this,
+            mod = that.getFileModel('first-measured');
+
         var forEachWrPhase = function(wrphs, phsIdx)
         {
             var forEachBar = function(br)
             {
-                //get an array of 3 - 7 notes as "nts" var
-                var nts = that.formatWriteableBar(br, phsIdx);
 
-                that.addChordToFile(mod, br);
-                //add those into the total song, "bar"ness is lost
-                //this retvar is just an array of notes.
-                retVar = retVar.concat(nts);
+                that.addChordToFile('jsmidgen', mod, br);
             };
             _.each(wrphs, forEachBar);
         }
 
         _.each(this.attributes.phases, forEachWrPhase);
-        this.saveModel(mod);
-        return retVar;
-
+        this.saveModel(mod); //on save, model gets an href- type property
+                            //that will allow download of the saved file.
+        // return retVar;
+        return this;
     },
+
     /**
+     * Currently unused; soon to be erased.
+     *
      * Return notes of the bar in a reduced form readily convertable
      * to binary (as opposed to playing in browser).
      *
@@ -249,14 +251,13 @@ var Song = bb.Model.extend(
             var formattedNote = that.formatWriteableNote(nt.note, idx, phsIdx);
             retVar.push(formattedNote);
         });
-        // console.log('output bar, by note : ');
-        // _.each(retVar, function(nt1){
-        //     console.log('note:' , nt1);
-        // });
+
         return retVar;
 
     },
     /**
+     * Currently unused; soon to be erased.
+     *
      * Format a note to be placed into a writeable bar.
      *
      * @param  {string} nt       tonal.js style note info
@@ -267,8 +268,7 @@ var Song = bb.Model.extend(
      */
     formatWriteableNote: function(nt, ntIdx, phaseIdx)
     {
-        // console.log('line 209 | ' + nt.pc + ' | ' + nt.freq);
-        // console.log(midiUtils.frequencyToNoteNumber(nt.freq));
+
         var noteNum = midiUtils.frequencyToNoteNumber(nt.freq),
             writeableNoteName = midiUtils.noteNumberToName(noteNum),
             noteData =
@@ -276,27 +276,16 @@ var Song = bb.Model.extend(
             correctWriteableNote =
                 this.utils.writeableFormattedNote(noteData['note'], noteData['oct']);
 
-            // console.log(writeableNoteName);
-            // console.log(noteData);
-            // console.log('final , usable note:');
-            // console.log(
-            //     correctWriteableNote
-            // );
-        // console.log('this.writeableDuration:');
-        // console.log(this.writeableDuration);
         var pc = parser.parse(nt),
             writeableTime = 118, //durational; so doesnt need base time?
-            //writeableNote = "" + nt.letter + nt.oct,
-            //writeableNote = noteNum,
             writeableNote = correctWriteableNote,
             writeData = {
                 note: writeableNote,
                 duration: writeableTime
             };
-            // console.log('writeable data:');
-            // console.log(writeData);
         return writeData;
     },
+
     /**
      * Utility-type function for formatting a bar for consumption
      * by the client
@@ -307,7 +296,7 @@ var Song = bb.Model.extend(
      */
     formatOutputBar: function(bar)
     {
-        return {chord: bar};
+        return { chord: bar };
     },
 
     /**
@@ -317,11 +306,13 @@ var Song = bb.Model.extend(
      */
     getFileModel: function(name)
     {
-        console.log('file name'+ name+ '<-');
-        var model = {
+
+        var outDir = this.get('outputDir'),
+            model = {
             file: new Midi.File(),
             track: new Midi.Track(),
-            name: './'+ name + '.midi'
+            name: './' + outDir + '/' + name,
+            ext: 'midi'
         };
 
         model.file.addTrack(model.track);
@@ -331,73 +322,167 @@ var Song = bb.Model.extend(
 
     /**
      *
+     *
      * @param {object} model Model from midgen
      */
-    addChordToFile: function(model, chord, duration)
+    addChordToFile: function(library)
     {
-        //console.log('duration: ' + duration);
-        if (!duration) {
-            duration = 64;
-        }
-        //console.log('duration: ' + duration);
-        var that = this;
-        //console.log('ch-------');
-        //console.log(chord);
-        //getMidgenNote
-        _.each(chord, function(itm) {
-            var nDat = itm.note;
-            // console.log(nDat);
-            // that.getMidgenNote
-            console.log();
-            var renderableNote = nDat.letter + nDat.acc + new String(nDat.oct);
-            var tm = Math.round(100 * nDat.time);
-            that.addNoteToFile(model, 0, renderableNote, tm, duration);
+        var adapterDirectory = {
+            'jsmidgen': 'midgenSaveChord'
+        };
+
+        var adapterFunc = adapterDirectory[library],
+            unshiftedArgs = Array.prototype.shift.apply(arguments);
+
+        this[adapterFunc].apply(this, arguments);
+
+    },
+
+    /**
+     * To make a chord with midgen, the first note of the chord (arbitrary)
+     * should carry time info and others have theirs omitted in the bottommost
+     * function call to the library.
+     *
+     * Another less informative but important way of saying that: with the
+     * midgen way of building the chord in the file, it matters the group of
+     * notes you hand it. The relative timing on most notes is actually
+     * ignored.
+     *
+     * @see https://github.com/dingram/jsmidgen
+     */
+    midgenSaveChord(model, chord) {
+
+        var that = this,
+            isFirstNoteOn = 1;
+        console.log('bar', chord);
+        _.each(chord, function(noteItm) {
+
+            var nDat = noteItm.note,
+                renderableNote =
+                    nDat.letter + nDat.acc + new String(nDat.oct).toLowerCase(),
+                delay = nDat['relativeTime'];
+
+            if (isFirstNoteOn) {
+                // console.log("model.track.addNoteOn(" + 0 + ", " + renderableNote + ", " + delay + ");");
+                that.firstBarNoteOn(model, 0, renderableNote, delay);
+            } else {
+                // console.log("model.track.addNoteOff(" + 0 + ", " + renderableNote + ");");
+                that.subsequentBarNoteOn(model, 0, renderableNote);
+            }
+            isFirstNoteOn = 0;
 
         });
 
-    },
+        //chord off events
+        var isFirstNoteOff = 1;
+        _.each(chord, function(noteItm) {
 
-    // e.g. 0, 'c4', 64
-    addNoteToFile: function(model, channel, pitch, duration, tm){
+            var nDat = noteItm.note,
+                renderableNote = nDat.letter + nDat.acc + new String(nDat.oct),
+                duration = nDat.duration;
+
+            if (isFirstNoteOff) {
+                that.firstBarNoteOff(model, 0, renderableNote, duration);
+                // useful log statement, from time to time
+                // console.log("model.track.addNoteOff(" + 0 + ", " + renderableNote + ", " + duration + ");");
+            } else {
+
+                that.subsequentBarNoteOff(model, 0, renderableNote);
+                // useful log statement, from time to time
+                // console.log("model.track.addNoteOff(" + 0 + ", " + renderableNote + ");");
+            }
+            isFirstNoteOff = 0;
+        });
+    },
+    //my working theory: @param delay is num ticks
+    //by which to follow the last specified note's start.
+    firstBarNoteOn: function(model, channel, pitch, delay){
         pitch = pitch.toLowerCase();
-        console.log("model.track.noteOn(" + channel + ", " + pitch + ", " + tm + ");");
-        console.log("model.track.noteOff(" + channel + ", " + pitch + ", " + new String(duration) + ");");
 
-        model.track.addNote(channel, pitch, duration, tm);
-        //model.track.addNoteOff(channel, pitch.toLowerCase(), duration);
-
+        model.track.addNoteOn(channel, pitch, delay);
     },
 
+    subsequentBarNoteOn: function(model, channel, pitch) {
+        pitch = pitch.toLowerCase();
+        model.track.addNoteOn(channel, pitch);
+
+    },
+    firstBarNoteOff: function(model, channel, pitch, duration){
+        pitch = pitch.toLowerCase();
+        model.track.addNoteOff(channel, pitch, duration);
+
+
+    },
+    subsequentBarNoteOff: function(model, channel, pitch){
+        pitch = pitch.toLowerCase();
+        model.track.addNoteOff(channel, pitch);
+
+    },
     saveModel: function(model)
     {
-        console.log('model.file.name:' + model.name, typeof(model.file.toBytes()));
-        var buff = fs.createWriteStream('temp-file.midi');
-        console.log(model.file.toBytes());
-        //buff.write(model.file.toBytes());
-        fs.writeFileSync('temp2.mid', model.file.toBytes(), 'binary');
-        buff.end();
+        this.makeOutputDir();
+
+        if (!model.name) {
+            model.name = 'temp';
+        }
+        if (!model.ext) {
+            model.ext = 'midi';
+        }
+
+        var fileName = model.name + '.' + model.ext,
+            fileExists = true,
+            iterator = 0,
+            safety = 0,
+            suffix = '';
+
+        while (fileExists) {
+            if (iterator > 0) {
+                suffix = '-' + iterator;
+                fileName =
+                    model.name
+                        + suffix
+                        + '.'
+                        + model.ext;
+            }
 
 
-        var Midi = require('jsmidgen');
+            if (!this.pathExists(fileName)) {
+                fileExists = false;
+                model.name = model.name + suffix;
+            }
 
-        var file = new Midi.File();
-        var track = new Midi.Track();
-        file.addTrack(track);
+            iterator ++;
 
-        track.addNote(0, 'c4', 64);
-        track.addNote(0, 'd4', 64);
-        track.addNote(0, 'e4', 64);
-        track.addNote(0, 'f4', 64);
-        track.addNote(0, 'g4', 64);
-        track.addNote(0, 'a4', 64);
-        track.addNote(0, 'b4', 64);
-        track.addNote(0, 'c5', 64);
+        }
+        var outFile = model.name + '.' + model.ext;
+        //console.log('output file: ' + outFile);
+        fs.writeFileSync(outFile, model.file.toBytes(), 'binary');
+        this.set('outputLink', (outFile.split('./public')[1]));
+    },
+    pathExists: function(path)
+    {
+        return fs.existsSync(path);
+    },
+    makeOutputDir: function()
+    {
+        var oDir = this.get('outputDir');
 
-        fs.writeFileSync('test1.mid', model.file.toBytes(), 'binary');
+        if (!oDir) {
+            throw new Error('Could not obtain the outputDir property');
+        }
 
-        //fs.writeFileSync(model.file.name, model.file.toBytes(), 'binary');
+        if (!this.pathExists(oDir)) {
+            //console.log('Path ' + oDir + ' does not see to exist; making it . . . ');
+            fs.mkdirSync(oDir);
+            if (!this.pathExists(oDir)) {
+                throw new Error ('Could not make output directory; ' + oDir);
+            }
+        }
+
+        return true;
     }
-
 });
+
+
 
 module.exports = Song;

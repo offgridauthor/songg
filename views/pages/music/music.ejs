@@ -22,7 +22,8 @@
 // the user (always me, David, at this point) wants
 // to retreive.
 var whichSong = window.location.href.indexOf('play2') == -1 ? 'firstsong' : 'songSystem',
-    sngCntr = 0;
+    sngCntr = 0,
+    defaultDelay = .5;
 
 window.onload = function () {
     //Initialize the MIDI playing capability to give a rough idea
@@ -81,22 +82,17 @@ window.onload = function () {
             {
                 var parsed = '',
                     parsed = JSON.parse(data),
-                    chords = parsed.song;
+                    chords = parsed.song,
+                    outputLink = parsed.midiLink,
+                    link = '<div><a href="' + parsed.midiLink + '">' + outputLink + '</a></div>',
+                    ticker = 0;
 
-                if (playOrDL == 'play') {
+                    $('body').append(link);
                     chords.forEach(
-                        playChord
+                        function(itm, idx){
+                            ticker += playChord(itm, ticker);
+                        }
                     );
-                } else if (playOrDL =='dl') {
-                    write(parsed.writeableSong);
-                }
-                //play the chord:
-                //
-
-
-                //Trigger a download of the file to the client
-                //
-
             }
 
             /**
@@ -106,10 +102,26 @@ window.onload = function () {
              *
              * @return {undefined}
              */
-            function playChord (crd)
+            function playChord (crd, ticker)
             {
-                var isFrst = 1;
-                $.each(crd.chord, playNote);
+                // console.log('playing chord; ticker: ' + ticker);
+                // console.log('chord: ', crd);
+
+                var isFrst = 1,
+                    tickNotes = 0;
+
+                $.each(
+                    crd.chord,
+                    function(ntIdx, note){
+                        var derivedNoteIdx = ticker + tickNotes;
+                        // console.log('playing note; tickNotes - ticker:' + tickNotes + '-' + ticker);
+                        // console.log('derived note idx: ' + derivedNoteIdx);
+                        // console.log('note var (chould be obj):', note);
+                        playNote(note, derivedNoteIdx);
+                        tickNotes ++;
+                    }
+                );
+                return tickNotes;
             }
             /**
              * Use MIDI player to play a single note.
@@ -118,28 +130,21 @@ window.onload = function () {
              * @param  {[type]} nt [description]
              * @return {[type]}    [description]
              */
-            function playNote(dl, nt)
+            function playNote(nt, noteInSongIndex)
             {
 
-                // var note = nt.note.midi,    // the MIDI note
-                //     delay = nt.note.time,   // midi delay
-                //     vol = 127,
-                //     velocity = 127;         // how hard the note hits (required; todo: move to server)
-                //
-                // // play the note
-                // MIDI.setVolume(0, vol);
-                // MIDI.noteOn(0, note, velocity, delay);
-                // MIDI.noteOff(0, note, delay + 1.5);
-                //console.log('note time: ' , nt.note.time);
-                var note = nt.note.midi,    // the MIDI note
-                    delay = nt.note.time,   // midi delay
-                    vol = 127,
-                    velocity = 127;         // how hard the note hits (required; todo: move to server)
-                console.log('playing a note with delay ' + delay);
+                var
+                    note = nt.note.midi,    // the MIDI note
+                    //delay = nt.note.time,
+                    delay = (nt.note.delay || defaultDelay) * noteInSongIndex,   // midi delay (abso time not used)
+                    otherDelay = nt.note.absoTime,
+                    vol = nt.note.vol || 127,
+                    velocity = nt.note.velocity || 127;         // how hard the note hits (required; todo: move to server)
+                console.log(' other delay: ' + otherDelay);
                 // play the note
                 MIDI.setVolume(0, vol);
-                MIDI.noteOn(0, note, velocity, delay);
-                MIDI.noteOff(0, note, delay);
+                MIDI.noteOn(0, note, velocity, otherDelay);
+                MIDI.noteOff(0, note, otherDelay + .2);
 
             }
 	    }
