@@ -2,7 +2,7 @@ var express = require('express'),
     app = express(),
     fs = require('fs'),
     Inflator    = require('./Inflator.js'),
-    dat = fs.readFileSync('./Songs/AEDDAG.json'),
+    dat = fs.readFileSync('./Songs/short-test.json'),
     songData = JSON.parse(dat),
     Song = require('./Song.js'),
     _ = require('underscore'),
@@ -22,7 +22,8 @@ app.values = {
 GLOBAL._ = _;
 GLOBAL.app = app;
 
-var PhaseElevator = require('./Manipulators/PhaseElevator.js');
+// var PhaseElevator = require('./Manipulators/PhaseElevator.js');
+var ArpegOneTwoOne = require('./Manipulators/ArpegOneTwoOne.js');
 
 app.set('port', (process.env.PORT || 5000));
 app.use(express.static(__dirname + '/public'));
@@ -46,13 +47,22 @@ app.get('/songSystem', function(request, response) {
 
     // The inflator sort of breathes initial life into the raw song data.
     var song = null,
-        song = Inflator.inflate(JSON.parse(dat)),
+        song = Inflator.inflate(JSON.parse(dat));
         // The phase elevator is a song massager that raises some notes,
         // lowers others, depending on which of its functions you use
         // and which args.
-        phsElvtr = new PhaseElevator();
+        // phsElvtr = new PhaseElevator(),
+        //need to automate pulling this in based off of the
+        //actual blueprint.
 
-    song.portal('verse', phsElvtr.go, {ctxt: phsElvtr});
+
+    // song.portal('verse', phsElvtr.go, {ctxt: phsElvtr});
+    if (song.get('disableArpeg') === false) {
+        var arpOneTwoOne = new ArpegOneTwoOne();
+        song.portal('chorus', arpOneTwoOne.go, {ctxt: arpOneTwoOne});
+        song.portal('verse', arpOneTwoOne.go, {ctxt: arpOneTwoOne});
+    }
+
     // phsElvtr.go(song.portal('chorus'));
     //After the massaging is done, this section obtains the notes in 2 formats
     //for passing to the client.

@@ -52,42 +52,48 @@
             "composition": [
                 "G+add#9", "D7b9#11", "G+add#9", "Am6", "D11b9", "C11"
             ],
-            "beatLength": 0.8
+            "beatLength": 0.8, "midiBeatLength": 80,
+            "chordDuration": 30
         },
         "verse1": {
             "measureCount": 9,
             "composition": [
                 "Fmb6M7","Csus24","Bo"
             ],
-            "beatLength": 0.8
+            "beatLength": 0.8, "midiBeatLength": 118,
+            "chordDuration": 30
         },
         "chorus2": {
             "measureCount": 8,
             "composition": [
                 "G+add#9", "D7b9#11", "G+add#9", "Am6", "D11b9", "C11"
             ],
-            "beatLength": 0.8
+            "beatLength": 0.8, "midiBeatLength": 118,
+            "chordDuration": 30
         },
         "verse2": {
             "measureCount": 9,
             "composition": [
                 "Fmb6M7","Csus24","Bo"
             ],
-            "beatLength": 0.8
+            "beatLength": 0.8, "midiBeatLength": 118,
+            "chordDuration": 30
         },
         "chorus3": {
             "measureCount": 8,
             "composition": [
                 "G+add#9", "D7b9#11", "G+add#9", "Am6", "D11b9", "C11"
             ],
-            "beatLength": 0.8
+            "beatLength": 0.8, "midiBeatLength": 118,
+            "chordDuration": 30
         },
         "verse3": {
             "measureCount": 9,
             "composition": [
                 "Fmb6M7","Csus24","Bo"
             ],
-            "beatLength": 0.8
+            "beatLength": 0.8, "midiBeatLength": 118,
+            "chordDuration": 30
         }
     }
 }

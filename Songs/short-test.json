@@ -1,0 +1,57 @@
+{
+    "disableArpeg": false,
+    "chords": [
+        {
+            "name": "+add#9",
+            "chord": "+add#9",
+            "octave": "C4"
+        },
+        {
+            "name": "11",
+            "chord": "11",
+            "octave": "C4"
+        },
+        {
+            "name": "M",
+            "chord": "M",
+            "octave": "C4"
+        },
+        {
+            "name": "m",
+            "chord": "m",
+            "octave": "C4"
+        }
+    ],
+    "phases": {
+        "chorus": {
+            "measureCount": 1,
+            "composition": [
+                "+add#9",
+                "11"
+            ],
+            "fraseDuration": 128,
+            "fraseDel": 0,
+            "demoBeatLength": 0.8,
+            "manipulators": [
+                ["ArpegOneTwoOne"]
+            ],
+            "measureCount": 1,
+            "imposedFraseLength": 256
+        },
+        "verse": {
+            "measureCount": 1,
+            "composition": [
+                "M",
+                "m"
+            ],
+            "fraseDuration": 128,
+            "fraseDel": 0,
+            "demoBeatLength": 0.8,
+            "manipulators": [
+                ["ArpegOneTwoOne"]
+            ],
+            "measureCount": 1,
+            "imposedFraseLength": 256
+        }
+    }
+}

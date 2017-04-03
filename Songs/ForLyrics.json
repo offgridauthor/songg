@@ -1,0 +1,83 @@
+{
+    "chords": [
+        {
+            "name": "Em",
+            "chord": "m",
+            "octave": "E4"
+        },
+        {
+            "name": "Am5",
+            "chord": "m",
+            "octave": "A3"
+        },
+        {
+            "name": "B7b5",
+            "chord": "7b5",
+            "octave": "B4"
+        },
+        {
+            "name": "Bb6",
+            "chord": "Mb6",
+            "octave": "B4"
+        },
+        {
+            "name": "M13",
+            "chord": "M13",
+            "octave": "C3"
+        },
+        {
+            "name": "M",
+            "chord": "M",
+            "octave": "C3"
+        },
+        {
+            "name": "FM",
+
+
+                "chord": "4",
+                "octave": "C4"
+
+        },
+        {
+            "name": "Em5",
+            "chord": "m",
+            "octave": "E3"
+        },
+        {   "name": "G",
+            "chord": "M",
+            "octave": "G3"
+        },
+
+        {
+            "name": "Em6",
+            "chord": "m",
+            "octave": "E3"
+        },
+        {
+            "name": "Dm5",
+            "chord": "m",
+            "octave": "D3"
+        }
+    ],
+    "phases": {
+            "aphrodite": {
+                "measureCount": 2,
+                "composition": [
+                    "M","M","M","M",  "B7b5","Bb6","Bb6","Bb6","Bb6", "G", "G","G", "G", "G", "Dm5", "Dm5", "Dm5", "Dm5", "Em", "Em"
+                ],
+                "beatLength": 0.8, "midiBeatLength": 118,
+                "confirmMeasureLength": 1.6,
+                "chordDuration": 110
+
+            },
+            "calypso": {
+                "measureCount": 2,
+                "composition": [
+                    "Dm5","Dm5","Dm5","Dm5","Dm5","M13","M13","M13","M13","M","G","G","G", "Em6", "Em6", "Em6"
+                ],
+                "beatLength": 0.8, "midiBeatLength": 118,
+                "confirmMeasureLength": 16.8,
+                "chordDuration": 110
+            }
+        }
+    }

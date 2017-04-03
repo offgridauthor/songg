@@ -1,14 +1,48 @@
 /**
  * Model file for raw song data
+ *
+ * Next to do:
+ *
+ * 1 - document and clarify all json settings
+ *      ~ remove redundant ones
+*  1.5 - Move out the application of Arpeggiation
+*       into the song config for real. Make it possible
+*       to apply that arpeg to specific chords.
+ * 2 - generalize the ArpegOneTwoOne
+ * 3 - may be worthwhile to get the song previewer
+ *      working again
+ * 4 - update npm modules
+ * 5 - in this file, re-obtain the prior version of
+ *      the writing functions in which no imposed
+ *      bar length was used.
+ * 6 - Really i need to disambiguate when the
+ *      song is being treated as an entirity--
+ *      flattened array--versus when we are
+ *      treating the phases individually. IOW,
+ *      properly use SongManipulator as distinct
+ *      from PhaseManipulator.
+ *      It seems to me I'm missing a Phase.js class.
+ *  7 - Also, disambiguate the file model from the
+ *       preview model. One should be capable of being
+ *       derived from the other by simple arithmetic
+ *   8 - Rename the concepts of bar and chord as a
+ *       single concept, a phrase--different in Songg from
+ *       either a bar or a chord.
  */
 
-var bb = require('backbone'),
+var Phase = require('./Phase.js'),
+    bb = require('backbone'),
     parser = require('note-parser'),
     midiUtils = require('midiutils'),
     fs = require('fs'),
-    Midi = require('jsmidgen');
+    Midi = require('jsmidgen'),
+    imposedBarLength = 256; //this is being moved into song config file
 
-
+/**
+ * The role of backbone is deprecated in this codebase.
+ *
+ * @type {[type]}
+ */
 var Song = bb.Model.extend(
 {
     /**
@@ -18,9 +52,8 @@ var Song = bb.Model.extend(
      */
     defaults: {
         title: null,
-        phases: new Array(), //array of Phase objects; parts of the song such as verse, chorus, and bridge.
-        writeablePhases: new Array(), //deprecated; vestige of the first version of the code
-        outputDir: 'public/outputMidi'
+        outputDir: 'public/outputMidi',
+        disableArpeg: false
     },
     /**
      * Set up the instance
@@ -30,10 +63,15 @@ var Song = bb.Model.extend(
      *
      * @return void
      */
-    initialize: function(attribs){
+    initialize: function(attribs) {
+
         var that = this;
-        this.phaseMeta = [];
         this.hist = [];
+        this.phases = {};
+        if (typeof(this.get('disableArpeg')) !== 'boolean') {
+            throw new Error('Must be bool');
+        }
+
 
     },
 
@@ -54,39 +92,9 @@ var Song = bb.Model.extend(
                     'oct': oct
                 };
             }
-        },
-        getMidgenNote: function(ntNm)
-        {
-            if (ntNm.indexOf('-') !== -1) {
-
-                    var dat1 = ntNm.split('-');
-                    return dat1[0] + dat1[1];
-
-            };
-
-            return ntNm;
-        },
-        writeableFormattedNote: function(ntNm, oct)
-        {
-            var useableNoteName = null,
-                sharpsToFlats = {
-                    'A#': 'Bb',
-                    'B#': 'Cb',
-                    'D#': 'Eb',
-                    'G#': 'Ab',
-                    'F#': 'Gb',
-                    'C#': 'D'
-                };
-
-            if (ntNm.indexOf('#') !== -1) {
-                useableNoteName = sharpsToFlats[ntNm];
-            } else {
-                useableNoteName = ntNm;
-            }
-
-            return useableNoteName + oct;
         }
     },
+
     /**
      * Return a phase by name
      *
@@ -94,21 +102,17 @@ var Song = bb.Model.extend(
      *
      * @return object/false Requested phrase
      */
-    getPhase: function(pn){
+    getPhase: function(pn) {
 
-        if (pn
-            && this.get
-            && this.attributes
-            && this.attributes.phases
-            && this.attributes.phases.length
-        ) {
-            var phs = _._.whereWithIndex(this.get('phases'));
-            if (phs) {
-                return phs;
+        if (pn) {
+            if (this.phases) {
+                if (this.phases[pn]) {
+                    return this.phases[pn];
+                }
             }
-        } else {
-            return false;
         }
+        throw new Error('cant return phase ' + pn);
+
     },
 
     /**
@@ -122,8 +126,7 @@ var Song = bb.Model.extend(
      *
      * @return {undefined}
      */
-    portal: function(phsNm, fn, params){
-
+    portal: function(phsNm, fn, params) {
         var phz = this.getPhase(phsNm);
         return fn.apply(params.ctxt, [phz]);
     },
@@ -133,41 +136,27 @@ var Song = bb.Model.extend(
      * @return {Number} Lengh value of this.attributes.phases
      */
     countPhases: function(){
-
-        var phss = this.attributes.phases;
-
-        return (phss
-                && (phss.length !== undefined
-                && phss.length !== null))
-                    ? phss.length
-                    : undefined;
+        return this.phases.length;
 
     },
     /**
      * Add a phase to the song
      *
      * @param  {object} phase  Phase data
-     * @param  {object} pegLib Arpeggio-making map
      * @param  {string} nm     key name for phase
      * @param  {number} idx    index at which to assign phase
      *
      * @return {undefined}
      */
-    addPhase: function(phase, pegLib, nm, idx)
+    addPhase: function(phase, nm, idx, opts)
     {
         if (typeof phase === 'object') {
-
-            //console.log(this);
-            this.attributes.phases.push(phase);
-            this.phaseMeta.push({
-                'name': nm,
-                'defaultPlacement': pegLib
-            });
+            this.phases[nm] = new Phase(phase, nm, idx, opts);
         } else {
             throw new Error('Argument should be an object (' + (typeof phase) + ') ');
         }
-
     },
+
     /**
      * Get the contents of the song bar by bar--for playing as
      * opposed to saving to a file.
@@ -180,15 +169,12 @@ var Song = bb.Model.extend(
         that = this,
         forEachPhase = function(phs)
         {
-            var forEachBar = function(br)
-            {
-                retVar.push(that.formatOutputBar(br));
-            };
-            _.each(phs, forEachBar);
+            retVar = retVar.concat(phs.referToBars());
+
         };
 
-        _.each(this.attributes.phases, forEachPhase);
-
+        _.each(this.phases, forEachPhase);
+        _.each(retVar, this.formatOutputBar);
 
         return retVar;
     },
@@ -199,93 +185,29 @@ var Song = bb.Model.extend(
      */
     saveMidi: function()
     {
-        // retVar and associated code lines (currently remarked out)
-        // were a way of using the midi file lib called midijs to
-        // write files; replaced it with the slightly more versatile
-        // js midgen. no return var is needed at this level because
-        // js midgen writes to file. Later the file address is passed
-        // to the front end to be used as an href for download.
-
-        var that = this,
-            mod = that.getFileModel('first-measured');
+        var
+            that = this,
+            mod = that.getFileModel('first-measured'),
+            accum = [];
 
         var forEachWrPhase = function(wrphs, phsIdx)
         {
-            var forEachBar = function(br)
-            {
+            console.log('\nphase ' + phsIdx);
+            wrphs.forEachBar(
+                function(br, barIdx)
+                {
+                    console.log('\nbar ' + barIdx);
+                    that.addChordToFile('jsmidgen', mod, br, accum, barIdx, imposedBarLength);
+                }
+            );
+        };
 
-                that.addChordToFile('jsmidgen', mod, br);
-            };
-            _.each(wrphs, forEachBar);
-        }
+        _.each(this.phases, forEachWrPhase);
+        this._midgenWriteEvents(accum, mod);
+        this.saveModel(mod);
 
-        _.each(this.attributes.phases, forEachWrPhase);
-        this.saveModel(mod); //on save, model gets an href- type property
-                            //that will allow download of the saved file.
-        // return retVar;
         return this;
     },
-
-    /**
-     * Currently unused; soon to be erased.
-     *
-     * Return notes of the bar in a reduced form readily convertable
-     * to binary (as opposed to playing in browser).
-     *
-     * @param  {array}  bar    array of notes
-     * @param  {number} phsIdx index from which the bar originated
-     *
-     * @return {array} Array of music notes in spare notation
-     */
-    formatWriteableBar: function(bar, phsIdx)
-    {
-        var that = this,
-        retVar = [];
-
-        // console.log('input bar, by note : ');
-        // _.each(bar, function(nt1){
-        //     console.log('note:' , nt1.note);
-        // });
-
-        _.each(bar, function(nt, idx){
-            var formattedNote = that.formatWriteableNote(nt.note, idx, phsIdx);
-            retVar.push(formattedNote);
-        });
-
-        return retVar;
-
-    },
-    /**
-     * Currently unused; soon to be erased.
-     *
-     * Format a note to be placed into a writeable bar.
-     *
-     * @param  {string} nt       tonal.js style note info
-     * @param  {number} ntIdx    index of note relative to the bar
-     * @param  {number} phaseIdx index of the phase from which this note originated
-     *
-     * @return {object}          writeable note data
-     */
-    formatWriteableNote: function(nt, ntIdx, phaseIdx)
-    {
-
-        var noteNum = midiUtils.frequencyToNoteNumber(nt.freq),
-            writeableNoteName = midiUtils.noteNumberToName(noteNum),
-            noteData =
-                this.utils.dataFromUtilName(writeableNoteName),
-            correctWriteableNote =
-                this.utils.writeableFormattedNote(noteData['note'], noteData['oct']);
-
-        var pc = parser.parse(nt),
-            writeableTime = 118, //durational; so doesnt need base time?
-            writeableNote = correctWriteableNote,
-            writeData = {
-                note: writeableNote,
-                duration: writeableTime
-            };
-        return writeData;
-    },
-
     /**
      * Utility-type function for formatting a bar for consumption
      * by the client
@@ -296,7 +218,7 @@ var Song = bb.Model.extend(
      */
     formatOutputBar: function(bar)
     {
-        return { chord: bar };
+        bar = { chord: bar };
     },
 
     /**
@@ -309,11 +231,11 @@ var Song = bb.Model.extend(
 
         var outDir = this.get('outputDir'),
             model = {
-            file: new Midi.File(),
-            track: new Midi.Track(),
-            name: './' + outDir + '/' + name,
-            ext: 'midi'
-        };
+                file: new Midi.File(),
+                track: new Midi.Track(),
+                name: './' + outDir + '/' + name,
+                ext: 'midi'
+            };
 
         model.file.addTrack(model.track);
 
@@ -321,103 +243,301 @@ var Song = bb.Model.extend(
     },
 
     /**
-     *
-     *
      * @param {object} model Model from midgen
      */
-    addChordToFile: function(library)
+    addChordToFile: function(library, mod, bar, accum, barIdx, imposedBarTm)
     {
-        var adapterDirectory = {
-            'jsmidgen': 'midgenSaveChord'
-        };
 
-        var adapterFunc = adapterDirectory[library],
-            unshiftedArgs = Array.prototype.shift.apply(arguments);
+        var enableOrDisble = (this.get('disableArpeg') ? 'diableArpeg' : 'enableArpeg'),
+            adapterDirectory = {
+                'diableArpeg': {
+                    'jsmidgen': 'midgenSaveWithoutArpeg'
+                },
+                'enableArpeg': {
+                    'jsmidgen': 'midgenSaveSong'
+                }
 
+            },
+            adapterFunc = adapterDirectory[enableOrDisble][library];
+
+
+        Array.prototype.shift.apply(arguments);
         this[adapterFunc].apply(this, arguments);
-
     },
 
     /**
+     *
+     */
+    midgenSaveSong: function(mod, chord, eventsToWrite, barIdx, imposedBarTm) {
+
+        var that = this,
+            isFirstStart = 1,
+            totDelay = barIdx * imposedBarTm,
+            totDur = 0,
+            perPitchStats = {},
+            lastEv = null;
+
+        if (isNaN(totDelay)) {
+            throw new Error("Error with args of midgenSaveSong.");
+        }
+
+        _.each(chord, function(noteItm, idx) {
+
+            var nDat = noteItm.note,
+                renderableNote = that.renderableNote(nDat),
+                //relativeTime is needed for note on
+                delay = nDat['relativeTime'], //treated now as a delay since previous start
+                //duration for note off (second loop)
+                duration = nDat.duration,
+                startTick = totDelay + delay;
+
+            if (!(delay) && delay !== 0) {
+
+                throw new Error("Error with delay.");
+            }
+
+            perPitchStats[renderableNote] = {
+                'startTick': startTick,
+                'desiredOffTick': startTick + duration
+            };
+
+            if (isNaN(startTick)) {
+                throw new Error("Error with startTick.");
+            }
+
+            var onEvt = {
+                type: 'on',
+                channel: 0,
+                note: renderableNote,
+                absoTime: startTick
+            };
+            console.log(JSON.stringify(onEvt, null, 4));
+
+            eventsToWrite.push(onEvt);
+
+            if (isNaN(startTick + duration)) {
+                throw new Error("Error with startTick or duration.");
+            }
+            var offEvt = {
+                type: 'off',
+                channel: 0,
+                note: renderableNote,
+                absoTime: startTick + duration
+            };
+
+            console.log(JSON.stringify(offEvt, null, 4));
+            eventsToWrite.push(offEvt);
+
+            totDelay += delay;
+            isFirstStart = 0;
+        });
+    },
+
+    _midgenWriteEvents: function(eventsToWrite, model)
+    {
+        var that = this;
+
+        eventsToWrite = _.sortBy(
+            eventsToWrite, 'absoTime'
+        );
+        // set midgTime
+        _.each (eventsToWrite, function(evt, idx) {
+
+            var isFirst = !!(idx === 0);
+
+            if (isFirst) {
+                evt.midgTime = evt.absoTime;
+
+            } else {
+                var priorTime = eventsToWrite[idx - 1].absoTime;
+                evt.midgTime = evt.absoTime - priorTime;
+
+            }
+
+        });
+
+        // actually write the events
+        //
+        _.each(
+            eventsToWrite, function(evt, idx) {
+                if (['on', 'off'].indexOf(evt.type) === -1) {
+                    throw new Error('Event type "' + evt.type + '" not supported' );
+                }
+
+                var fnName = evt.type === 'on' ? 'midgNoteOn' : 'midgNoteOff';
+                that[fnName](model, 0, evt.note, evt.midgTime);
+
+            }
+        );
+    },
+
+    /**
+     *
+     */
+    midgenSaveChordPrev: function(model, chord, initTime) {
+
+        var that = this,
+            isFirstStart = 1,
+            totDelay = initTime,
+            totDur = 0,
+            perPitchStats = {},
+            eventsToWrite = [],
+            lastEv = null;
+
+
+
+        _.each(chord, function(noteItm, idx) {
+
+            var nDat = noteItm.note,
+                renderableNote = that.renderableNote(nDat),
+
+                //relativeTime is needed for note on
+                delay = nDat['relativeTime'], //treated now as a delay since previous start
+                //duration for note off (second loop)
+                duration = nDat.duration,
+
+                startTick = totDelay + delay;
+
+            perPitchStats[renderableNote] = {
+                'startTick': startTick,
+                'desiredOffTick': startTick + duration
+            };
+
+            eventsToWrite.push({
+                type: 'on',
+                channel: 0,
+                note: renderableNote,
+                absoTime: startTick
+            });
+
+            eventsToWrite.push({
+                type: 'off',
+                channel: 0,
+                note: renderableNote,
+                absoTime: startTick + duration
+            });
+
+            totDelay += delay;
+            isFirstStart = 0;
+        });
+
+        eventsToWrite = _.sortBy(
+            eventsToWrite, 'absoTime'
+        );
+
+        _.each (eventsToWrite, function(evt, idx) {
+
+            var isFirst = !!(idx === 0),
+                isLast = !!(eventsToWrite[idx + 1]);
+
+            if (isFirst) {
+                evt.midgTime = evt.absoTime;
+
+            } else {
+                var priorTime = eventsToWrite[idx - 1].absoTime;
+                evt.midgTime = evt.absoTime - priorTime;
+            }
+
+        });
+
+        _.each(
+            eventsToWrite, function(evt, idx) {
+                if (['on', 'off'].indexOf(evt.type) === -1) {
+                    throw new Error('Event type "' + evt.type + '" not supported' );
+                }
+
+                var fnName = evt.type === 'on' ? 'midgNoteOn' : 'midgNoteOff';
+                that[fnName](model, 0, evt.note, evt.midgTime);
+            }
+        );
+
+        return eventsToWrite[eventsToWrite.length -1].absoTime;
+    },
+
+    /**
+     * Write notes to the midi track to be saved as a midi file.
+     *
      * To make a chord with midgen, the first note of the chord (arbitrary)
      * should carry time info and others have theirs omitted in the bottommost
      * function call to the library.
      *
-     * Another less informative but important way of saying that: with the
-     * midgen way of building the chord in the file, it matters the group of
-     * notes you hand it. The relative timing on most notes is actually
-     * ignored.
+     * Another way of saying that: add a note's beginning point by using
+     * the *noteOn functions. That note also opens up a chord; it begins
+     * the chord. Subsequent notes will sound simultaneously until they
+     * all end from your closing the chord. That happens when you close
+     * the first note.
+     *
+     * Now, there is an addChord; but I need to update jsmidgen to get that.
      *
      * @see https://github.com/dingram/jsmidgen
      */
-    midgenSaveChord(model, chord) {
+    midgenSaveWithoutArpeg: function(model, chord) {
 
         var that = this,
-            isFirstNoteOn = 1;
-        console.log('bar', chord);
+            isFirstStart = 1;
+
+
         _.each(chord, function(noteItm) {
 
             var nDat = noteItm.note,
-                renderableNote =
-                    nDat.letter + nDat.acc + new String(nDat.oct).toLowerCase(),
-                delay = nDat['relativeTime'];
+                renderableNote = that.renderableNote(nDat),
 
-            if (isFirstNoteOn) {
-                // console.log("model.track.addNoteOn(" + 0 + ", " + renderableNote + ", " + delay + ");");
-                that.firstBarNoteOn(model, 0, renderableNote, delay);
-            } else {
-                // console.log("model.track.addNoteOff(" + 0 + ", " + renderableNote + ");");
-                that.subsequentBarNoteOn(model, 0, renderableNote);
-            }
-            isFirstNoteOn = 0;
-
-        });
-
-        //chord off events
-        var isFirstNoteOff = 1;
-        _.each(chord, function(noteItm) {
-
-            var nDat = noteItm.note,
-                renderableNote = nDat.letter + nDat.acc + new String(nDat.oct),
+                //relativeTime is needed for note on
+                delay = nDat['relativeTime'],
+                //duration for note off (second loop)
                 duration = nDat.duration;
 
-            if (isFirstNoteOff) {
-                that.firstBarNoteOff(model, 0, renderableNote, duration);
-                // useful log statement, from time to time
-                // console.log("model.track.addNoteOff(" + 0 + ", " + renderableNote + ", " + duration + ");");
-            } else {
+            if (isFirstStart) {
+                that.midgNoteOn(model, 0, renderableNote, delay);
 
-                that.subsequentBarNoteOff(model, 0, renderableNote);
-                // useful log statement, from time to time
-                // console.log("model.track.addNoteOff(" + 0 + ", " + renderableNote + ");");
+            } else {
+                that.midgNoteOn(model, 0, renderableNote, delay);
+
             }
-            isFirstNoteOff = 0;
+            isFirstStart = 0;
+        });
+
+        var isFirst = 1;
+        _.each(chord, function(noteCont) {
+                var noteItm = noteCont.note,
+                    renderableNote = that.renderableNote(noteItm),
+                    //"duration" key needed for note off
+                    duration = noteItm.duration;
+            if (isFirst) {
+                //duration is added as what is technically the delay
+                //since the prev. event in the channel.
+                that.midgNoteOff(model, 0, renderableNote, duration);
+
+            } else {
+                that.midgNoteOff(model, 0, renderableNote);
+            }
+            isFirst = 0;
         });
     },
-    //my working theory: @param delay is num ticks
-    //by which to follow the last specified note's start.
-    firstBarNoteOn: function(model, channel, pitch, delay){
-        pitch = pitch.toLowerCase();
 
-        model.track.addNoteOn(channel, pitch, delay);
+
+    renderableNote: function(nDat)
+    {
+         return nDat.letter + nDat.acc + new String(nDat.oct)
     },
 
-    subsequentBarNoteOn: function(model, channel, pitch) {
+    midgNoteOn: function(model, channel, pitch, delay) {
+
         pitch = pitch.toLowerCase();
-        model.track.addNoteOn(channel, pitch);
-
+        if (delay === undefined) {
+            return model.track.addNoteOn(channel, pitch);
+        }
+        return model.track.addNoteOn(channel, pitch, delay);
     },
-    firstBarNoteOff: function(model, channel, pitch, duration){
+
+    midgNoteOff: function(model, channel, pitch, duration) {
         pitch = pitch.toLowerCase();
-        model.track.addNoteOff(channel, pitch, duration);
-
-
+        if (duration !== undefined) {
+            return model.track.addNoteOff(channel, pitch, duration);
+        }
+        return model.track.addNoteOff(channel, pitch);
     },
-    subsequentBarNoteOff: function(model, channel, pitch){
-        pitch = pitch.toLowerCase();
-        model.track.addNoteOff(channel, pitch);
 
-    },
     saveModel: function(model)
     {
         this.makeOutputDir();
@@ -455,7 +575,7 @@ var Song = bb.Model.extend(
 
         }
         var outFile = model.name + '.' + model.ext;
-        //console.log('output file: ' + outFile);
+
         fs.writeFileSync(outFile, model.file.toBytes(), 'binary');
         this.set('outputLink', (outFile.split('./public')[1]));
     },
@@ -472,17 +592,14 @@ var Song = bb.Model.extend(
         }
 
         if (!this.pathExists(oDir)) {
-            //console.log('Path ' + oDir + ' does not see to exist; making it . . . ');
+
             fs.mkdirSync(oDir);
             if (!this.pathExists(oDir)) {
                 throw new Error ('Could not make output directory; ' + oDir);
             }
         }
-
         return true;
     }
 });
-
-
 
 module.exports = Song;

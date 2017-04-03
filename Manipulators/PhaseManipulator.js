@@ -29,7 +29,7 @@ PhaseManipulator.prototype.forEachBar = function(phs, fn, params, modFn)
         throw new Error('Function is required.');
     }
 
-    _.forEach(phs, function(bar0, idx){
+    _.forEach(phs.bars, function(bar0, idx) {
         params.barIndex = idx;
         if (modFn(idx)) {
             fn(bar0, params);
