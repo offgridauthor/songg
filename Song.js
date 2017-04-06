@@ -1,34 +1,34 @@
 /**
- * Model file for raw song data
- *
- * Next to do:
- *
- * 1 - document and clarify all json settings
- *      ~ remove redundant ones
-*  1.5 - Move out the application of Arpeggiation
-*       into the song config for real. Make it possible
-*       to apply that arpeg to specific chords.
- * 2 - generalize the ArpegOneTwoOne
- * 3 - may be worthwhile to get the song previewer
- *      working again
- * 4 - update npm modules
- * 5 - in this file, re-obtain the prior version of
- *      the writing functions in which no imposed
- *      bar length was used.
- * 6 - Really i need to disambiguate when the
- *      song is being treated as an entirity--
- *      flattened array--versus when we are
- *      treating the phases individually. IOW,
- *      properly use SongManipulator as distinct
- *      from PhaseManipulator.
- *      It seems to me I'm missing a Phase.js class.
- *  7 - Also, disambiguate the file model from the
- *       preview model. One should be capable of being
- *       derived from the other by simple arithmetic
- *   8 - Rename the concepts of bar and chord as a
- *       single concept, a phrase--different in Songg from
- *       either a bar or a chord.
- */
+  * Model file for raw song data
+  *
+  * Next to do:
+  *
+  * 1 - document and clarify all json settings
+  *      ~ remove redundant ones
+  * 1.5 - Move out the application of Arpeggiation
+  *     into the song config for real. Make it possible
+  *     to apply that arpeg to specific chords.
+  * 2 - generalize the ArpegOneTwoOne
+  * 3 - may be worthwhile to get the song previewer
+  *      working again
+  * 4 - update npm modules
+  * 5 - in this file, re-obtain the prior version of
+  *      the writing functions in which no imposed
+  *      bar length was used.
+  * 6 - Really i need to disambiguate when the
+  *      song is being treated as an entirity--
+  *      flattened array--versus when we are
+  *      treating the phases individually. IOW,
+  *      properly use SongManipulator as distinct
+  *      from PhaseManipulator.
+  * 7 - It seems to me I'm missing a Phase.js class.
+  *      Also, disambiguate the file model from the
+  *       preview model. One should be capable of being
+  *       derived from the other by simple arithmetic
+  * 8 - Rename the concepts of bar and chord as a
+  *       single concept, a phrase--different in Songg from
+  *       either a bar or a chord.
+* */
 
 var Phase = require('./Phase.js'),
     bb = require('backbone'),
@@ -36,12 +36,13 @@ var Phase = require('./Phase.js'),
     midiUtils = require('midiutils'),
     fs = require('fs'),
     Midi = require('jsmidgen'),
-    imposedBarLength = 256; //this is being moved into song config file
+    imposedBarLength = 256;
 
 /**
  * The role of backbone is deprecated in this codebase.
  *
  * @type {[type]}
+ *
  */
 var Song = bb.Model.extend(
 {
@@ -55,6 +56,7 @@ var Song = bb.Model.extend(
         outputDir: 'public/outputMidi',
         disableArpeg: false
     },
+
     /**
      * Set up the instance
      *
@@ -71,14 +73,13 @@ var Song = bb.Model.extend(
         if (typeof(this.get('disableArpeg')) !== 'boolean') {
             throw new Error('Must be bool');
         }
-
-
     },
 
     utils: {
         dataFromUtilName: function(ntNm)
         {
             if (ntNm.indexOf('-') !== -1) {
+
                 var dat1 = ntNm.split('-');
                 return {
                     'note': dat1[0],
@@ -112,7 +113,6 @@ var Song = bb.Model.extend(
             }
         }
         throw new Error('cant return phase ' + pn);
-
     },
 
     /**
@@ -178,36 +178,71 @@ var Song = bb.Model.extend(
 
         return retVar;
     },
+
     /**
-     * Save to a midi file
+     * Extract phase data and in the process time it correctly
+     * with relation to other phases.
      *
      * @return {Backbone Model instance}
      */
     saveMidi: function()
     {
-        var
-            that = this,
+        var that = this,
             mod = that.getFileModel('first-measured'),
-            accum = [];
+            accum = [],
+            phases = this.getAbsolutizedPhases(),
+            writeableEvents = this.getWriteableEvents();
 
-        var forEachWrPhase = function(wrphs, phsIdx)
-        {
-            console.log('\nphase ' + phsIdx);
-            wrphs.forEachBar(
-                function(br, barIdx)
-                {
-                    console.log('\nbar ' + barIdx);
-                    that.addChordToFile('jsmidgen', mod, br, accum, barIdx, imposedBarLength);
-                }
-            );
-        };
-
-        _.each(this.phases, forEachWrPhase);
+        _._.logg(writeableEvents);
+        _._.logg(phases);
         this._midgenWriteEvents(accum, mod);
         this.saveModel(mod);
 
         return this;
     },
+
+    /**
+     * [chainPhases description]
+     * @return {[type]} [description]
+     */
+    pushPhases: function() {
+        var that = this,
+            mod = that.getFileModel('first-measured'),
+            accum = [];
+    },
+
+    /**
+     * Chain one phase to the next; finalize timing.
+     *
+     * @return {[type]} [description]
+     *
+     */
+    getAbsolutizedPhases: function() {
+        var prevPhase = null;
+
+        this.forEachPhase(function(phs) {
+            if (prevPhase) {
+                console.log('hella fella');
+                phs.hookTo(prevPhase);
+            }
+
+            prevPhase = phs;
+        });
+        return this.phases;
+    },
+
+    /**
+     * forEachPhase
+     *
+     * @param  {Function} fn [description]
+     * @return {[type]}      [description]
+     *
+     */
+    forEachPhase: function(fn)
+    {
+        _.each(this.phases, fn);
+    },
+
     /**
      * Utility-type function for formatting a bar for consumption
      * by the client
@@ -228,7 +263,6 @@ var Song = bb.Model.extend(
      */
     getFileModel: function(name)
     {
-
         var outDir = this.get('outputDir'),
             model = {
                 file: new Midi.File(),
@@ -245,9 +279,8 @@ var Song = bb.Model.extend(
     /**
      * @param {object} model Model from midgen
      */
-    addChordToFile: function(library, mod, bar, accum, barIdx, imposedBarTm)
+    addPhaseToFile: function(library, mod, bar, accum, barIdx, imposedBarTm)
     {
-
         var enableOrDisble = (this.get('disableArpeg') ? 'diableArpeg' : 'enableArpeg'),
             adapterDirectory = {
                 'diableArpeg': {
@@ -268,71 +301,78 @@ var Song = bb.Model.extend(
     /**
      *
      */
-    midgenSaveSong: function(mod, chord, eventsToWrite, barIdx, imposedBarTm) {
-
+    getWriteableEvents: function() {
+        console.log('getWri');
         var that = this,
             isFirstStart = 1,
-            totDelay = barIdx * imposedBarTm,
+            totDelay = 0,
             totDur = 0,
-            perPitchStats = {},
-            lastEv = null;
+            lastEv = null,
+            eventsToWrite = [];
 
-        if (isNaN(totDelay)) {
-            throw new Error("Error with args of midgenSaveSong.");
-        }
+        _.each(this.phases, function(phase) {
 
-        _.each(chord, function(noteItm, idx) {
+            _.each(phase.referToFrases(), function(fraseArr) {
 
-            var nDat = noteItm.note,
-                renderableNote = that.renderableNote(nDat),
-                //relativeTime is needed for note on
-                delay = nDat['relativeTime'], //treated now as a delay since previous start
-                //duration for note off (second loop)
-                duration = nDat.duration,
-                startTick = totDelay + delay;
+                var isFirstFrase = true;
+                _.each(fraseArr, function(noteItm, idx) {
 
-            if (!(delay) && delay !== 0) {
+                    var nDat = noteItm.note;
+                    if (isFirstFrase) {
+                        if (!isFirstStart) {
+                            if (nDat['phaseDelay'] === undefined) {
+                                console.log('323');
+                                console.log(JSON.stringify(nDat, null, 4));
 
-                throw new Error("Error with delay.");
-            }
+                                throw new Error('First note of phase requires a hook time');
+                            }
+                            totDelay = nDat['phaseDelay'];
+                        }
+                    }
 
-            perPitchStats[renderableNote] = {
-                'startTick': startTick,
-                'desiredOffTick': startTick + duration
-            };
+                    var renderableNote = that.renderableNote(nDat),
+                        //relativeTime is needed for note on
 
-            if (isNaN(startTick)) {
-                throw new Error("Error with startTick.");
-            }
+                        delay = nDat['relativeTime'],
+                        //treated now as a delay since previous start
+                        //duration for note off (second loop)
 
-            var onEvt = {
-                type: 'on',
-                channel: 0,
-                note: renderableNote,
-                absoTime: startTick
-            };
-            console.log(JSON.stringify(onEvt, null, 4));
+                        duration = nDat.duration,
+                        startTick = totDelay + delay,
+                        onEvt = {
+                            type: 'on',
+                            channel: 0,
+                            note: renderableNote,
+                            absoTime: startTick
+                        };
 
-            eventsToWrite.push(onEvt);
 
-            if (isNaN(startTick + duration)) {
-                throw new Error("Error with startTick or duration.");
-            }
-            var offEvt = {
-                type: 'off',
-                channel: 0,
-                note: renderableNote,
-                absoTime: startTick + duration
-            };
+                    eventsToWrite.push(onEvt);
 
-            console.log(JSON.stringify(offEvt, null, 4));
-            eventsToWrite.push(offEvt);
+                    var offEvt = {
+                        type: 'off',
+                        channel: 0,
+                        note: renderableNote,
+                        absoTime: startTick + duration
+                    };
 
-            totDelay += delay;
+                    eventsToWrite.push(offEvt);
+                    totDelay += delay;
+                    isFirstFrase = false;
+                });
+            });
             isFirstStart = 0;
         });
+        return eventsToWrite;
     },
 
+    /**
+     *
+     *
+     * @param  {[type]} eventsToWrite [description]
+     * @param  {[type]} model         [description]
+     * @return {[type]}               [description]
+     */
     _midgenWriteEvents: function(eventsToWrite, model)
     {
         var that = this;
@@ -340,6 +380,7 @@ var Song = bb.Model.extend(
         eventsToWrite = _.sortBy(
             eventsToWrite, 'absoTime'
         );
+
         // set midgTime
         _.each (eventsToWrite, function(evt, idx) {
 
@@ -351,93 +392,7 @@ var Song = bb.Model.extend(
             } else {
                 var priorTime = eventsToWrite[idx - 1].absoTime;
                 evt.midgTime = evt.absoTime - priorTime;
-
             }
-
-        });
-
-        // actually write the events
-        //
-        _.each(
-            eventsToWrite, function(evt, idx) {
-                if (['on', 'off'].indexOf(evt.type) === -1) {
-                    throw new Error('Event type "' + evt.type + '" not supported' );
-                }
-
-                var fnName = evt.type === 'on' ? 'midgNoteOn' : 'midgNoteOff';
-                that[fnName](model, 0, evt.note, evt.midgTime);
-
-            }
-        );
-    },
-
-    /**
-     *
-     */
-    midgenSaveChordPrev: function(model, chord, initTime) {
-
-        var that = this,
-            isFirstStart = 1,
-            totDelay = initTime,
-            totDur = 0,
-            perPitchStats = {},
-            eventsToWrite = [],
-            lastEv = null;
-
-
-
-        _.each(chord, function(noteItm, idx) {
-
-            var nDat = noteItm.note,
-                renderableNote = that.renderableNote(nDat),
-
-                //relativeTime is needed for note on
-                delay = nDat['relativeTime'], //treated now as a delay since previous start
-                //duration for note off (second loop)
-                duration = nDat.duration,
-
-                startTick = totDelay + delay;
-
-            perPitchStats[renderableNote] = {
-                'startTick': startTick,
-                'desiredOffTick': startTick + duration
-            };
-
-            eventsToWrite.push({
-                type: 'on',
-                channel: 0,
-                note: renderableNote,
-                absoTime: startTick
-            });
-
-            eventsToWrite.push({
-                type: 'off',
-                channel: 0,
-                note: renderableNote,
-                absoTime: startTick + duration
-            });
-
-            totDelay += delay;
-            isFirstStart = 0;
-        });
-
-        eventsToWrite = _.sortBy(
-            eventsToWrite, 'absoTime'
-        );
-
-        _.each (eventsToWrite, function(evt, idx) {
-
-            var isFirst = !!(idx === 0),
-                isLast = !!(eventsToWrite[idx + 1]);
-
-            if (isFirst) {
-                evt.midgTime = evt.absoTime;
-
-            } else {
-                var priorTime = eventsToWrite[idx - 1].absoTime;
-                evt.midgTime = evt.absoTime - priorTime;
-            }
-
         });
 
         _.each(
@@ -448,10 +403,9 @@ var Song = bb.Model.extend(
 
                 var fnName = evt.type === 'on' ? 'midgNoteOn' : 'midgNoteOff';
                 that[fnName](model, 0, evt.note, evt.midgTime);
+
             }
         );
-
-        return eventsToWrite[eventsToWrite.length -1].absoTime;
     },
 
     /**
@@ -579,6 +533,7 @@ var Song = bb.Model.extend(
         fs.writeFileSync(outFile, model.file.toBytes(), 'binary');
         this.set('outputLink', (outFile.split('./public')[1]));
     },
+
     pathExists: function(path)
     {
         return fs.existsSync(path);

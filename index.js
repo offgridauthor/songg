@@ -55,7 +55,6 @@ app.get('/songSystem', function(request, response) {
         //need to automate pulling this in based off of the
         //actual blueprint.
 
-
     // song.portal('verse', phsElvtr.go, {ctxt: phsElvtr});
     if (song.get('disableArpeg') === false) {
         var arpOneTwoOne = new ArpegOneTwoOne();
