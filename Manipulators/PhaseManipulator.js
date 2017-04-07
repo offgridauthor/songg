@@ -25,11 +25,12 @@ util.inherits(PhaseManipulator, Manipulator);
  */
 PhaseManipulator.prototype.forEachBar = function(phs, fn, params, modFn)
 {
+    console.log('PhaseMan', phs, fn, params, modFn);
     if (!_.isFunction(modFn)) {
         throw new Error('Function is required.');
     }
 
-    _.forEach(phs.bars, function(bar0, idx) {
+    _.forEach(phs.referToFrases(), function(bar0, idx) {
         params.barIndex = idx;
         if (modFn(idx)) {
             fn(bar0, params);

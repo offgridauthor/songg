@@ -9,7 +9,8 @@ var Phase = function(data, nm, order, opts)
 {
     var allowedProps = [
         'imposedFraseLength',
-        'frases'
+        'frases',
+        'name'
     ];
 
     this.frases = null;
@@ -17,8 +18,8 @@ var Phase = function(data, nm, order, opts)
 
     this.initialize = function(data, nm, order, optParams) {
         this.set('frases', data);
+        this.set('name', nm);
         this.setOptionals(optParams);
-
     }
 
     this.referToFrases = function() {
@@ -78,21 +79,21 @@ var Phase = function(data, nm, order, opts)
      */
     this.hookTo = function(previousPhase)
     {
-
         var delay = previousPhase.getFollowingTime(),
             firstBar = this.getFirstFrase();
 
-        _._.logg(firstBar.note.phaseDelay);
         firstBar.note.phaseDelay = delay;
-        _._.logg(firstBar.note.phaseDelay);
-
     }
 
     this.getFollowingTime = function()
     {
-        return this.get('imposedFraseLength') * this.frases.length;
+        return this.get('imposedFraseLength') * this.frases.length - 1;
     }
-    
+
+    this.getName = function()
+    {
+        return this.get('name');
+    }
     this.initialize(data, nm, order, opts);
 
 }

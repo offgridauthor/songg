@@ -32,7 +32,7 @@ app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 
 app.get('/', function(request, response) {
-  response.render('pages/index')
+    response.render('pages/index');
 });
 
 app.get('/firstsong', function(request, response) {
@@ -57,6 +57,7 @@ app.get('/songSystem', function(request, response) {
 
     // song.portal('verse', phsElvtr.go, {ctxt: phsElvtr});
     if (song.get('disableArpeg') === false) {
+        console.log('running arpeg');
         var arpOneTwoOne = new ArpegOneTwoOne();
         song.portal('chorus', arpOneTwoOne.go, {ctxt: arpOneTwoOne});
         song.portal('verse', arpOneTwoOne.go, {ctxt: arpOneTwoOne});
@@ -66,13 +67,11 @@ app.get('/songSystem', function(request, response) {
     //After the massaging is done, this section obtains the notes in 2 formats
     //for passing to the client.
 
-    var bars = null,
     //For MIDI.js to play the song; and for
-
-    bars = song.readBars();
+    var bars = song.readBars(),
 
     //The midi file exporter or writer to export them
-    var savedFile = song.saveMidi(),
+        savedFile = song.saveMidi(),
         songData = {
             'song': bars,
             // 'writeableSong': wrBars, //see song model for further comments; why

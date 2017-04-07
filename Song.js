@@ -66,7 +66,6 @@ var Song = bb.Model.extend(
      * @return void
      */
     initialize: function(attribs) {
-
         var that = this;
         this.hist = [];
         this.phases = {};
@@ -79,7 +78,6 @@ var Song = bb.Model.extend(
         dataFromUtilName: function(ntNm)
         {
             if (ntNm.indexOf('-') !== -1) {
-
                 var dat1 = ntNm.split('-');
                 return {
                     'note': dat1[0],
@@ -139,6 +137,7 @@ var Song = bb.Model.extend(
         return this.phases.length;
 
     },
+
     /**
      * Add a phase to the song
      *
@@ -194,8 +193,7 @@ var Song = bb.Model.extend(
             writeableEvents = this.getWriteableEvents();
 
         _._.logg(writeableEvents);
-        _._.logg(phases);
-        this._midgenWriteEvents(accum, mod);
+        this._midgenWriteEvents(writeableEvents, mod);
         this.saveModel(mod);
 
         return this;
@@ -219,13 +217,15 @@ var Song = bb.Model.extend(
      */
     getAbsolutizedPhases: function() {
         var prevPhase = null;
-
         this.forEachPhase(function(phs) {
             if (prevPhase) {
-                console.log('hella fella');
-                phs.hookTo(prevPhase);
-            }
 
+                // console.log('hella fella');
+                // _._.logg(phs);
+                phs.hookTo(prevPhase);
+                // console.log('after:');
+                // _._.logg(phs);
+            }
             prevPhase = phs;
         });
         return this.phases;
@@ -302,7 +302,7 @@ var Song = bb.Model.extend(
      *
      */
     getWriteableEvents: function() {
-        console.log('getWri');
+        // console.log('getWri');
         var that = this,
             isFirstStart = 1,
             totDelay = 0,
@@ -310,26 +310,34 @@ var Song = bb.Model.extend(
             lastEv = null,
             eventsToWrite = [];
 
+        console.log('phs len: ' + this.phases.length);
+
         _.each(this.phases, function(phase) {
+            // console.log('name:' + phase.getName());
+            var referee = phase.referToFrases(),
+                isFirstFrase = true;
+            _.each(referee, function(fraseArr, fraseIdx) {
 
-            _.each(phase.referToFrases(), function(fraseArr) {
-
-                var isFirstFrase = true;
-                _.each(fraseArr, function(noteItm, idx) {
-
+                // console.log('319; fraseIdx: ', fraseIdx);
+                // _._.logg(fraseArr);
+                _.each(fraseArr, function(noteItm, noteIdx) {
+                    // console.log('322');
+                    // _._.logg(noteItm);
                     var nDat = noteItm.note;
-                    if (isFirstFrase) {
-                        if (!isFirstStart) {
-                            if (nDat['phaseDelay'] === undefined) {
-                                console.log('323');
-                                console.log(JSON.stringify(nDat, null, 4));
-
-                                throw new Error('First note of phase requires a hook time');
+                    if (noteIdx === 0) {
+                        // console.log('328');
+                        if (isFirstFrase) {
+                            if (!isFirstStart) {
+                                // console.log('not first start:' + phase.getName());
+                                if (nDat['phaseDelay'] === undefined) {
+                                    // console.log(JSON.stringify(nDat, null, 4));
+                                    throw new Error('First note of phase requires a hook time');
+                                }
+                                totDelay = nDat['phaseDelay'];
                             }
-                            totDelay = nDat['phaseDelay'];
                         }
                     }
-
+                    console.log('td: ' , totDelay);
                     var renderableNote = that.renderableNote(nDat),
                         //relativeTime is needed for note on
 
@@ -338,7 +346,7 @@ var Song = bb.Model.extend(
                         //duration for note off (second loop)
 
                         duration = nDat.duration,
-                        startTick = totDelay + delay,
+                        startTick = totDelay + delay||0,
                         onEvt = {
                             type: 'on',
                             channel: 0,
@@ -528,6 +536,7 @@ var Song = bb.Model.extend(
             iterator ++;
 
         }
+
         var outFile = model.name + '.' + model.ext;
 
         fs.writeFileSync(outFile, model.file.toBytes(), 'binary');

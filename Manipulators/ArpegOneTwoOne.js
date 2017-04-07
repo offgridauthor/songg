@@ -33,17 +33,18 @@ util.inherits(ArpegOneTwoOne, PhaseManipulator);
  */
 ArpegOneTwoOne.prototype.go = function(phs)
 {
-
-
-    if (!phs.getImposedFraseLength) {
+    if (!phs.getImposedFraseLength()) {
         throw new Error('Custom arpeggation requires an imposed frase length in phase.');
     }
+
     this.forEachBar(phs, arpeg, {}, modulatorFn);
 
     function arpeg(br, params)
-    {
+    {   console.log('arp 43');
+        _._.logg(br);
         var idx = params.barIndex,
             applicableDelay = null;
+
         _.each(
             br,
             function(ntDat, idx)
@@ -53,13 +54,17 @@ ArpegOneTwoOne.prototype.go = function(phs)
                 }
 
                 var nt = new Note(ntDat);
-
-                if (arpeggiation[idx]) {
-                    nt.ntAttrs.relativeTime = arpeggiation[idx];
+                console.log('arp 56');
+                if (applicableDelay) {
+                    console.log('arp 58');
+                    nt.ntAttrs.relativeTime = applicableDelay;
                     nt.ntAttrs.imposedBarLength = phs.imposedFraseLength;
-                }  else {
+                } else {
+                    console.log('arp 62');
                     nt.ntAttrs.relativeTime = 0;
                 }
+
+                console.log('arpeg end'); _._.logg(nt.ntAttrs);
 
             }
         );
