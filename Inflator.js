@@ -2,10 +2,9 @@ var util = require('util'),
     parser = require('note-parser'),
     t = require('tonal'),
     Song = require('./Song.js'),
-    tc = require('tonal-chord');
-
-var
-    absoTimeIdx = 'absoTime',
+    tc = require('tonal-chord'),
+    Frase = require('./Frase.js'),
+     absoTimeIdx = 'absoTime',
     relativeTimeIdx = 'relativeTime',
     song;
 
@@ -44,7 +43,8 @@ Inflator.inflate = function(songDat)
 }
 
 Inflator.makeDefaultBars = function(dat) {
-    song = new Song(null);
+
+    song = new Song(dat);
 
     if (dat.disableArpeg) {
         if (typeof(dat.disableArpeg) !== 'boolean') {
@@ -53,14 +53,20 @@ Inflator.makeDefaultBars = function(dat) {
         song.set('disableArpeg', dat.disableArpeg);
     }
 
-
     var chords = dat.chords,
         phsCnt = 0,
         phsTime = 0,
         that = this;
 
-    _.forEach(dat.phases, function(a,b,c) {
-        var lengthOfAddedPhase = that.forEachPhase(a, b, phsTime, chords, phsCnt);
+    _.forEach(dat.phases, function(a, b, c) {
+        var phaseSongDat = cloanPhaseSongDat(dat)
+            strKey = app.songAttributesKey
+
+        a[strKey] = phaseSongDat
+        _._.verifySongOpts(a);
+
+        var lengthOfAddedPhase = that.forEachPhase(a, b, phsTime, chords, phsCnt)
+
         phsCnt++;
         phsTime += lengthOfAddedPhase;
     });
@@ -75,9 +81,8 @@ Inflator.makeDefaultBars = function(dat) {
  */
 Inflator.forEachPhase = function (phase, phaseIdxInSong, phaseTimeInSong, chords, phsCnt)
 {
-    var phaseReceptacle = [], //reset temporary var for each laid out phase
 
-        // cache a few properties for convenience
+    var // cache a few properties for convenience
         measureChords = phase.composition,
         // phase.measureLength,
         demoBeatLength = phase.demoBeatLength, /* This beat length is for the in-browser demo only. */
@@ -101,23 +106,25 @@ Inflator.forEachPhase = function (phase, phaseIdxInSong, phaseTimeInSong, chords
                 //len may differ from measure length
 
                 // get name of chord from composed data
-            var chordNm = measureChords[barCntr],
+            var chordDat = this.chordDat(measureChords[barCntr]),
+
+
+                chordNm = chordDat.name,
+
                 // get get chord as defined in the song file
                 composedChord = _.where(chords, {name: chordNm})[0],
+
                 // Get a kind of shell to which we will add both global and
                 // internal timing
                 timelessBar = this.getTimelessBar(parser, composedChord),
-                // get some very arbitrary data about the chord
-                noteMetaData = this.makeNoteMetaData(chordNm),
-                that = this;
 
-            //stamp arb data onto each note
-            _.each(timelessBar.notes, function(nt) {
-                that.stampNote(nt, noteMetaData);
-            });
+                // get some very arbitrary data about the chord
+                noteMetaData = this.makeNoteMetaData(chordDat),
+                that = this;
 
             var timedToBar = that.addBarOffsets(timelessBar, barCntr * demoBeatLength, betweenFrases, dur);
 
+            timedToBar.config = chordDat;
             // at this point, the "bar" (timedToBar) has information on it about its
             // time within the phase, and also time about its own internal notes'
             // timings. Those are combined at a later phase.
@@ -133,11 +140,28 @@ Inflator.forEachPhase = function (phase, phaseIdxInSong, phaseTimeInSong, chords
         var elapsedTime = (elapsedMsrTime + phaseTimeInSong);
 
         measureReceptacle = addMeasureOffsets(measureReceptacle, elapsedTime);
+
         withOffsets = measureReceptacle;
+
         withOffsets.forEach(
-            function(obj)
+            function(obj, idx)
             {
-                phaseReceptacle.push(obj.notes);
+
+                var frParams = {
+                        notes: obj.notes,
+                        //withOffsets gets reset per measureCntr
+                        index: idx + (measureChords.length * measureCntr),
+                        config: obj.config,
+                        phaseOptions: {
+                            imposedLength: phase.imposedFraseLength,
+                            duration: phase.fraseDuration,
+                            manipParams: phase.manipParams,
+                            disableArpeg: phase.disableArpeg
+                        }
+                    };
+
+                var fr = new Frase(frParams);
+                phaseReceptacle.push(fr);
             }
         );
 
@@ -152,9 +176,29 @@ Inflator.forEachPhase = function (phase, phaseIdxInSong, phaseTimeInSong, chords
 
     }
 
+    _._.verifySongOpts(phase);
     song.addPhase(phaseReceptacle, phaseIdxInSong, phsCnt, phase);
 
     return elapsedMsrTime;
+
+}
+
+Inflator.chordDat = function(crd)
+{
+    var retData = {
+        'name': null
+    };
+
+    if (typeof crd === 'string') {
+        retData.name = crd;
+    }
+
+    if (typeof crd === 'object')
+    {
+        retData = crd;
+    }
+
+    return retData;
 
 }
 
@@ -166,7 +210,6 @@ Inflator.stampNote = function(nt, meta)
 Inflator.getTimelessBar = function(parser1, chords)
 {
     //measureChords = M
-
     var that = this,
         chordNoteList = this.getTonalNotes(
         chords  // long array of items such as { name: '+add#9', chord: '+add#9', octave: 'C4' },
@@ -266,11 +309,24 @@ Inflator.addBarOffsets = function(bar, absoTime, tweenNotes, midiDur)
         return newBar;
     }
 
+    function copyBarObj(bar1) {
+        var retBar = {};
+        _.each(
+            bar1,
+            function(offsetItm1, idx)
+            {
+                var tn2 = JSON.parse(JSON.stringify(offsetItm1));
+                retBar[idx] = tn2;
+            }
+        );
+        return retBar;
+    }
 
     function copyBar(bar1) {
         var retBar = [];
-        bar1.forEach(
-            function(offsetItm1)
+        _.each(
+            bar1,
+            function(offsetItm1, idx)
             {
                 var tn2 = JSON.parse(JSON.stringify(offsetItm1));
                 retBar.push(tn2);
@@ -280,7 +336,6 @@ Inflator.addBarOffsets = function(bar, absoTime, tweenNotes, midiDur)
     }
 
 /**
- *
  *
  * @param {array} msr Measure of bars; each bar = array with "notes" as
  *                    primary property.
@@ -311,9 +366,8 @@ function addMeasureOffsets(msr, timeToAdd)
         msr_.forEach(
             function(barItm)
             {
-                var newBar = {
-                    notes: []
-                };
+                var newBar = copyBarObj(barItm);
+                    newBar.notes = [];
 
                 barItm.notes.forEach(
                     function(offsettable)
@@ -360,23 +414,22 @@ function addMeasureOffsets(msr, timeToAdd)
  */
 function addBarToMeasure(receptacle, bar)
 {
-    receptacle.push({'notes': bar.notes} );
+    receptacle.push(bar);
 
 }
 
 Inflator.makeNoteMetaData = function (bn)
 {
-    return {'chord' : bn};
+    return {'composition' : bn};
 }
 
 function showPhaseNotes(phsData)
 {
     var n = 0;
     phsData.forEach(
-        function(arr){
+        function(arr) {
             var nNt = 0;
-
-            arr.forEach(function(noteObj){
+            arr.forEach(function(noteObj) {
                 nNt ++ ;
             });
             n++;
@@ -393,13 +446,9 @@ function showPhaseNotes(phsData)
 function showBarNotes(barData)
 {
     var n = 0;
-
     barData.forEach(
         function(obj){
-
             var nNt = obj.note;
-
-
         }
     );
 }
@@ -413,9 +462,14 @@ function validateCountedTime(cntd, calcd)
 
 function validateChordNames (cordz, songChords)
 {
+
     var invalidCordz = [];
-    cordz.forEach(function(cordzItm, cordzIdx){
-        var crdDat = _.where(songChords, {name: cordzItm});
+
+    cordz.forEach(function(cordzItm, cordzIdx) {
+
+        var chordInfo = Inflator.chordDat(cordzItm),
+            crdDat = _.where(songChords, {name: chordInfo.name});
+
         if (crdDat.length <= 0) {
             invalidCordz.push(cordzItm);
         }
@@ -426,5 +480,14 @@ function validateChordNames (cordz, songChords)
     }
 }
 
+function cloanPhaseSongDat(data1)
+{
+    var data2 = JSON.parse(JSON.stringify(data1));
+
+    delete data2.phases;
+    delete data2.chords;
+
+    return data2;
+}
 
 module.exports = Inflator;

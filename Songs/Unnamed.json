@@ -54,7 +54,15 @@
                 ],
                 "beatLength": 0.8, "midiBeatLength": 90,
                 "confirmMeasureLength": 1.6,
-                "chordDuration": 45
+                "chordDuration": 45,
+                "demoBeatLength": 0.8,
+                "fraseDuration": 256,
+                "imposedFraseLength": 256,
+                "fraseDel": 0,
+                "manipParams": {
+                    "Arpeggiator": [0, 164, 220, 250]
+                }            
             }
+            
         }
     }

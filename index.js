@@ -1,14 +1,15 @@
 var express = require('express'),
     app = express(),
     fs = require('fs'),
-    Inflator    = require('./Inflator.js'),
-    dat = fs.readFileSync('./Songs/short-test.json'),
+    Inflator = require('./Inflator.js'),
+    dat = fs.readFileSync('./Songs/Unnamed.json'),
     songData = JSON.parse(dat),
     Song = require('./Song.js'),
     _ = require('underscore'),
     bb = require('backbone'),
     utilExt = require('./codelibs/utilsExtension.js');
-    _._ = utilExt;
+    _._ = utilExt,
+    forEachModulators = require('./codelibs/ForEachModulators.js');
 
 /**
  * Get Some constant-ish type values available on the app object.
@@ -16,14 +17,15 @@ var express = require('express'),
  * @type {Object} Values useful across the app
  */
 app.values = {
-    forEachModulators: JSON.parse(fs.readFileSync('./values/ForEachModulators.json').toString())
+    forEachModulators: forEachModulators
 };
 
-GLOBAL._ = _;
-GLOBAL.app = app;
+global._ = _;
+global.app = app;
+global.app.songAttributesKey = 'songAttributes';
 
-// var PhaseElevator = require('./Manipulators/PhaseElevator.js');
-var ArpegOneTwoOne = require('./Manipulators/ArpegOneTwoOne.js');
+var PhaseElevator = require('./Manipulators/PhaseElevator.js'),
+    Arpeggiator = require('./Manipulators/Arpeggiator.js');
 
 app.set('port', (process.env.PORT || 5000));
 app.use(express.static(__dirname + '/public'));
@@ -55,13 +57,14 @@ app.get('/songSystem', function(request, response) {
         //need to automate pulling this in based off of the
         //actual blueprint.
 
+
     // song.portal('verse', phsElvtr.go, {ctxt: phsElvtr});
-    if (song.get('disableArpeg') === false) {
-        console.log('running arpeg');
-        var arpOneTwoOne = new ArpegOneTwoOne();
-        song.portal('chorus', arpOneTwoOne.go, {ctxt: arpOneTwoOne});
-        song.portal('verse', arpOneTwoOne.go, {ctxt: arpOneTwoOne});
-    }
+
+        var arp = new Arpeggiator();
+
+        song.portal('aphrodite', arp.go, {ctxt: arp});
+//        song.portal('calypso', arp.go, {ctxt: arp});
+
 
     // phsElvtr.go(song.portal('chorus'));
     //After the massaging is done, this section obtains the notes in 2 formats

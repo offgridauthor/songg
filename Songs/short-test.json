@@ -29,14 +29,11 @@
                 "+add#9",
                 "11"
             ],
-            "fraseDuration": 128,
+            "fraseDuration": 30,
             "fraseDel": 0,
             "demoBeatLength": 0.8,
-            "manipulators": [
-                ["ArpegOneTwoOne"]
-            ],
             "measureCount": 1,
-            "imposedFraseLength": 256
+            "imposedFraseLength": 400
         },
         "verse": {
             "measureCount": 1,
@@ -44,14 +41,11 @@
                 "M",
                 "m"
             ],
-            "fraseDuration": 128,
+            "fraseDuration": 100,
             "fraseDel": 0,
             "demoBeatLength": 0.8,
-            "manipulators": [
-                ["ArpegOneTwoOne"]
-            ],
             "measureCount": 1,
-            "imposedFraseLength": 256
+            "imposedFraseLength": 800
         }
     }
 }

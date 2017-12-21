@@ -35,14 +35,10 @@ var Phase = require('./Phase.js'),
     parser = require('note-parser'),
     midiUtils = require('midiutils'),
     fs = require('fs'),
-    Midi = require('jsmidgen'),
-    imposedBarLength = 256;
+    Midi = require('jsmidgen')
 
 /**
  * The role of backbone is deprecated in this codebase.
- *
- * @type {[type]}
- *
  */
 var Song = bb.Model.extend(
 {
@@ -112,7 +108,14 @@ var Song = bb.Model.extend(
         }
         throw new Error('cant return phase ' + pn);
     },
-
+    getPhaseLen: function()
+    {
+        var cnt = 0;
+        _.each(this.phases, function(){
+            cnt++;
+        });
+        return cnt;
+    },
     /**
      * Pass a phase name, function, and args for the function
      * to call this function and operate it on a phase of the
@@ -150,7 +153,9 @@ var Song = bb.Model.extend(
     addPhase: function(phase, nm, idx, opts)
     {
         if (typeof phase === 'object') {
+            _._.verifySongOpts(opts);
             this.phases[nm] = new Phase(phase, nm, idx, opts);
+
         } else {
             throw new Error('Argument should be an object (' + (typeof phase) + ') ');
         }
@@ -168,7 +173,7 @@ var Song = bb.Model.extend(
         that = this,
         forEachPhase = function(phs)
         {
-            retVar = retVar.concat(phs.referToBars());
+            retVar = retVar.concat(phs.referToFrases());
 
         };
 
@@ -189,10 +194,10 @@ var Song = bb.Model.extend(
         var that = this,
             mod = that.getFileModel('first-measured'),
             accum = [],
-            phases = this.getAbsolutizedPhases(),
-            writeableEvents = this.getWriteableEvents();
+            phases = this.getAbsolutizedPhases();
 
-        _._.logg(writeableEvents);
+        var writeableEvents = this.getWriteableEvents();
+
         this._midgenWriteEvents(writeableEvents, mod);
         this.saveModel(mod);
 
@@ -218,16 +223,13 @@ var Song = bb.Model.extend(
     getAbsolutizedPhases: function() {
         var prevPhase = null;
         this.forEachPhase(function(phs) {
-            if (prevPhase) {
 
-                // console.log('hella fella');
-                // _._.logg(phs);
-                phs.hookTo(prevPhase);
-                // console.log('after:');
-                // _._.logg(phs);
-            }
+            phs.hookTo(prevPhase);
+            phs.timeFrases(prevPhase === null);
+
             prevPhase = phs;
         });
+        prevPhase = null;
         return this.phases;
     },
 
@@ -281,6 +283,7 @@ var Song = bb.Model.extend(
      */
     addPhaseToFile: function(library, mod, bar, accum, barIdx, imposedBarTm)
     {
+
         var enableOrDisble = (this.get('disableArpeg') ? 'diableArpeg' : 'enableArpeg'),
             adapterDirectory = {
                 'diableArpeg': {
@@ -302,57 +305,53 @@ var Song = bb.Model.extend(
      *
      */
     getWriteableEvents: function() {
-        // console.log('getWri');
+
         var that = this,
-            isFirstStart = 1,
+            isFirstPhase = 1,
             totDelay = 0,
             totDur = 0,
             lastEv = null,
             eventsToWrite = [];
 
-        console.log('phs len: ' + this.phases.length);
-
         _.each(this.phases, function(phase) {
-            // console.log('name:' + phase.getName());
-            var referee = phase.referToFrases(),
-                isFirstFrase = true;
+
+            var phsIdx = phase.getIndex()
+                referee = phase.referToFrases()
+                isFirstFrase = 1
+
             _.each(referee, function(fraseArr, fraseIdx) {
 
-                // console.log('319; fraseIdx: ', fraseIdx);
-                // _._.logg(fraseArr);
-                _.each(fraseArr, function(noteItm, noteIdx) {
-                    // console.log('322');
-                    // _._.logg(noteItm);
+                var isFirstNote = 1;
+                _.each(fraseArr.notes, function(noteItm, noteIdx) {
                     var nDat = noteItm.note;
                     if (noteIdx === 0) {
-                        // console.log('328');
-                        if (isFirstFrase) {
-                            if (!isFirstStart) {
-                                // console.log('not first start:' + phase.getName());
-                                if (nDat['phaseDelay'] === undefined) {
-                                    // console.log(JSON.stringify(nDat, null, 4));
-                                    throw new Error('First note of phase requires a hook time');
-                                }
-                                totDelay = nDat['phaseDelay'];
-                            }
+
+                        if (nDat['phaseDelay'] !== undefined) {
+                            totDelay = nDat['phaseDelay'];
+                        } else if (nDat['fraseDelay'] !== undefined) {
+                            totDelay = nDat['fraseDelay'];
+
+                        } else {
+                            throw new Error('First notes phaseDel or fraseDel must be setß');
                         }
+
                     }
-                    console.log('td: ' , totDelay);
-                    var renderableNote = that.renderableNote(nDat),
+                    var delay = nDat['relativeTime'] || 0
+
+                        renderableNote = that.renderableNote(nDat)
                         //relativeTime is needed for note on
 
-                        delay = nDat['relativeTime'],
                         //treated now as a delay since previous start
                         //duration for note off (second loop)
 
-                        duration = nDat.duration,
-                        startTick = totDelay + delay||0,
+                        duration = nDat.duration
+                        startTick = totDelay + (delay||0)
                         onEvt = {
                             type: 'on',
                             channel: 0,
                             note: renderableNote,
                             absoTime: startTick
-                        };
+                        }
 
 
                     eventsToWrite.push(onEvt);
@@ -366,10 +365,11 @@ var Song = bb.Model.extend(
 
                     eventsToWrite.push(offEvt);
                     totDelay += delay;
-                    isFirstFrase = false;
+                    isFirstNote = 0;
                 });
+                isFirstFrase = 0;
             });
-            isFirstStart = 0;
+            isFirstPhase = 0;
         });
         return eventsToWrite;
     },
@@ -392,7 +392,7 @@ var Song = bb.Model.extend(
         // set midgTime
         _.each (eventsToWrite, function(evt, idx) {
 
-            var isFirst = !!(idx === 0);
+            var isFirst = (idx === 0);
 
             if (isFirst) {
                 evt.midgTime = evt.absoTime;
@@ -436,10 +436,10 @@ var Song = bb.Model.extend(
     midgenSaveWithoutArpeg: function(model, chord) {
 
         var that = this,
-            isFirstStart = 1;
+            isFirstPhase = 1;
 
 
-        _.each(chord, function(noteItm) {
+        _.each(chord.notes, function(noteItm) {
 
             var nDat = noteItm.note,
                 renderableNote = that.renderableNote(nDat),
@@ -449,20 +449,21 @@ var Song = bb.Model.extend(
                 //duration for note off (second loop)
                 duration = nDat.duration;
 
-            if (isFirstStart) {
+            if (isFirstPhase) {
                 that.midgNoteOn(model, 0, renderableNote, delay);
 
             } else {
                 that.midgNoteOn(model, 0, renderableNote, delay);
 
             }
-            isFirstStart = 0;
+            isFirstPhase = 0;
         });
 
         var isFirst = 1;
         _.each(chord, function(noteCont) {
                 var noteItm = noteCont.note,
                     renderableNote = that.renderableNote(noteItm),
+
                     //"duration" key needed for note off
                     duration = noteItm.duration;
             if (isFirst) {
