@@ -16,13 +16,14 @@ var Inflator = function () {
   this.name = 'Inflator'
 }
 
+// use tonal.js to fetch a midi-composed chord
 Inflator.getTonalNotes = function (chordLibDat) {
-  // import chord from 'tonal-chord';
+
   var chordName = chordLibDat.chord,
     oct = chordLibDat.octave,
     rawChord = tc.build(chordName, oct)
 
-    // use tonal.js to fetch a midi-composed chord
+
   return rawChord
 }
 
@@ -397,12 +398,6 @@ function showPhaseNotes (phsData) {
   )
 }
 
-/**
- *
- *
- * @param  {[type]} phsData [description]
- * @return {[type]}         [description]
- */
 function showBarNotes (barData) {
   var n = 0
   barData.forEach(

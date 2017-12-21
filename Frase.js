@@ -14,6 +14,12 @@ var Frase = function (params) {
   this.imposedFraseLength = null
   this.disableArpeg = null
 
+  /**
+   * Initialize the object
+   *
+   * @param  {Object}   parameters  Primary params
+   * @return {Undefined}
+   */
   this.initialize = function (parameters) {
     this.set('notes', parameters.notes)
     this.set('index', parameters.index)
@@ -26,15 +32,31 @@ var Frase = function (params) {
     this.set('phaseConfig', parameters.phaseOptions.manipParams)
   }
 
-  // common with phase
+  /**
+   * Get the index of the frase within the song.
+   *
+   * @return {Number}   Integer (index)
+   */
   this.getIndex = function () {
     return this.get('index')
   }
 
+  /**
+   * Return a reference to the Frase's notes.
+   *
+   * @return {Array}
+   */
   this.referToNotes = function () {
     return this.get('notes')
   }
 
+  /**
+   * Getter
+   * @todo: rewrite to use Es6 getter
+   *
+   * @param  {String}   propName    Name of property to get
+   * @return {mixed}                Value at property
+   */
   this.get = function (propName) {
     if (allowedProps.indexOf(propName) === -1) {
       throw new Error('Disallowed property name:' + propName)
@@ -42,6 +64,15 @@ var Frase = function (params) {
     return this[propName]
   }
 
+
+    /**
+     * setter
+     * @todo: rewrite to use Es6 setter
+     *
+     * @param  {String} propName    Name of property to set
+     * @param  {mixed}  propName    Val to set
+     * @return {mixed}              Value at property
+     */
   this.set = function (propName, propVal) {
     if (allowedProps.indexOf(propName) === -1) {
       throw new Error('Disallowed property name:' + propName)
@@ -54,14 +85,28 @@ var Frase = function (params) {
     this[propName] = propVal
   }
 
+  /**
+   * Run this passed func for each note
+   *
+   * @param  {Function} fn  Func to run
+   * @return {Undefined}
+   */
   this.forEachNote = function (fn) {
     _.each(this.get('notes'), fn)
   }
 
+  /**
+   * Get imposed        frase length
+   * @return {Number}   Integral frase length
+   */
   this.getImposedFraseLength = function () {
     return this.get('imposedFraseLength')
   }
 
+  /**
+   * Get the first note
+   * @return {Object}   Note object
+   */
   this.getFirstNote = function () {
     var notes1 = this.get('notes')
     if (notes1.notes) {
@@ -71,11 +116,11 @@ var Frase = function (params) {
   }
 
   /**
-     * Based on previous phrase, give this one its
+     * Based on previous frase, give this one its
      * start position in the overall song.
      *
-     * @param  {[type]} previousPhase [description]
-     * @return {[type]}               [description]
+     * @param  {Object} priorFollowingTime Time by which to follow the prior
+     * @return {Undefined}
      */
   this.hookTo = function (priorFollowingTime) {
     var fnt = this.getFirstNote()
@@ -90,19 +135,36 @@ var Frase = function (params) {
 
     fnt['fraseDelay'] += priorFollowingTime
 
-    if (fnt['fraseDelay'] === NaN || fnt['fraseDelay'] == undefined) {
+    if (isNaN(fnt['fraseDelay']) || fnt['fraseDelay'] == undefined) {
       throw new Error('Unable to set frase timing')
     }
   }
 
+  /**
+   * Get the note       count
+   * @return {Number}   Integral note count
+   */
   this.getNoteCount = function () {
     return this.referToNotes().length
   }
 
+  /**
+   * Get the "disableArpeg" prop
+   *
+   * @return {Boolean}
+   */
   this.getDisableArpeg = function () {
     return this.get('disableArpeg')
   }
 
+  /**
+   * Get config of manipulator being appled to to the
+   * Frase context; prefer local, resort to Phase-based
+   * configuration
+   *
+   * @param  {String}   manipName Manipulator name to refer to
+   * @return {mixed}    Config
+   */
   this.getManipParam = function (manipName) {
     var confDat = this.get('config')
     if (confDat) {
@@ -113,6 +175,13 @@ var Frase = function (params) {
     return this._getPhaseManipParam(manipName)
   }
 
+  /**
+   * Get config of manipulator being appled to to the
+   * Frase context.
+   *
+   * @param  {String}   manipName Manipulator name to refer to
+   * @return {mixed}    Config
+   */
   this._getPhaseManipParam = function (manipName) {
     var phsConfDat = this.get('phaseConfig')
 

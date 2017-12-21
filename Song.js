@@ -1,33 +1,5 @@
 /**
-  * Model file for raw song data
-  *
-  * Next to do:
-  *
-  * 1 - document and clarify all json settings
-  *      ~ remove redundant ones
-  * 1.5 - Move out the application of Arpeggiation
-  *     into the song config for real. Make it possible
-  *     to apply that arpeg to specific chords.
-  * 2 - generalize the ArpegOneTwoOne
-  * 3 - may be worthwhile to get the song previewer
-  *      working again
-  * 4 - update npm modules
-  * 5 - in this file, re-obtain the prior version of
-  *      the writing functions in which no imposed
-  *      bar length was used.
-  * 6 - Really i need to disambiguate when the
-  *      song is being treated as an entirity--
-  *      flattened array--versus when we are
-  *      treating the phases individually. IOW,
-  *      properly use SongManipulator as distinct
-  *      from PhaseManipulator.
-  * 7 - It seems to me I'm missing a Phase.js class.
-  *      Also, disambiguate the file model from the
-  *       preview model. One should be capable of being
-  *       derived from the other by simple arithmetic
-  * 8 - Rename the concepts of bar and chord as a
-  *       single concept, a phrase--different in Songg from
-  *       either a bar or a chord.
+  * Model class for raw song data
 * */
 
 var Phase = require('./Phase.js'),
