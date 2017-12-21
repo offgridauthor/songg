@@ -3,4 +3,5 @@ public/*
 *.mid
 *.midi
 
-/nbproject/private/
+nbproject
+node_modules
