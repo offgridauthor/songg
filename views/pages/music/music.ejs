@@ -104,9 +104,6 @@ window.onload = function () {
              */
             function playChord (crd, ticker)
             {
-                // console.log('playing chord; ticker: ' + ticker);
-                // console.log('chord: ', crd);
-
                 var isFrst = 1,
                     tickNotes = 0;
 
@@ -114,9 +111,6 @@ window.onload = function () {
                     crd.chord,
                     function(ntIdx, note){
                         var derivedNoteIdx = ticker + tickNotes;
-                        // console.log('playing note; tickNotes - ticker:' + tickNotes + '-' + ticker);
-                        // console.log('derived note idx: ' + derivedNoteIdx);
-                        // console.log('note var (chould be obj):', note);
                         playNote(note, derivedNoteIdx);
                         tickNotes ++;
                     }
@@ -135,12 +129,11 @@ window.onload = function () {
 
                 var
                     note = nt.note.midi,    // the MIDI note
-                    //delay = nt.note.time,
                     delay = (nt.note.delay || defaultDelay) * noteInSongIndex,   // midi delay (abso time not used)
                     otherDelay = nt.note.absoTime,
                     vol = nt.note.vol || 127,
                     velocity = nt.note.velocity || 127;         // how hard the note hits (required; todo: move to server)
-                console.log(' other delay: ' + otherDelay);
+
                 // play the note
                 MIDI.setVolume(0, vol);
                 MIDI.noteOn(0, note, velocity, otherDelay);

@@ -1,7 +1,7 @@
 var util = require('util');
 
 function Manipulator () {
-    this.name = "Manipulator";
+  this.name = 'Manipulator'
 }
 
-module.exports = Manipulator;
+module.exports = Manipulator

@@ -1,5 +1,5 @@
 
-var parser = require('note-parser');
+var parser = require('note-parser')
 
 /**
  * Constructs instance of object with class Note
@@ -12,9 +12,8 @@ var parser = require('note-parser');
  *
  * @return {undefined}
  */
-function Note (atrs)
-{
-    this.ntAttrs = atrs.note;
+function Note (atrs) {
+  this.ntAttrs = atrs.note
 };
 
 /**
@@ -23,18 +22,15 @@ function Note (atrs)
  * @param  {number}     newOct Octave to which to set the note.
  * @return {undefined}
  */
-Note.prototype.setOct = function(newOct)
-{
+Note.prototype.setOct = function (newOct) {
+  letter = this.getLetter()
+  var newReadableNote = letter + newOct.toString(),
+    newFreq = parser.freq(newReadableNote),
+    newMid = parser.midi(newReadableNote)
 
-    letter = this.getLetter();
-    var newReadableNote = letter + newOct.toString(),
-        newFreq = parser.freq(newReadableNote),
-        newMid = parser.midi(newReadableNote);
-
-    this.ntAttrs.freq = newFreq;
-    this.ntAttrs.oct = newOct;
-    this.ntAttrs.midi = newMid;
-
+  this.ntAttrs.freq = newFreq
+  this.ntAttrs.oct = newOct
+  this.ntAttrs.midi = newMid
 }
 
 /**
@@ -42,9 +38,8 @@ Note.prototype.setOct = function(newOct)
  *
  * @return {string} note letter value
  */
-Note.prototype.getLetter = function()
-{
-    return this.ntAttrs.letter;
+Note.prototype.getLetter = function () {
+  return this.ntAttrs.letter
 }
 
-module.exports = Note;
+module.exports = Note
