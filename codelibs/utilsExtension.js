@@ -1,5 +1,5 @@
 module.exports = {
-  /**
+    /**
      * Find and return an object; include its index
      * as a property (index in the array in
      * which it's sought).
@@ -8,22 +8,22 @@ module.exports = {
      * @param  {Object} searchTerms Sought key-value pairs
      * @return {Object}             Object if found; otherwise undefined
      */
-  whereWithIndex: function (list, searchTerms) {
-    if (list === undefined || searchTerms === undefined) {
-      throw new Error('WhereWithIndex expects 2 parameters.')
-    }
+    whereWithIndex: function (list, searchTerms) {
+        if (list === undefined || searchTerms === undefined) {
+            throw new Error('WhereWithIndex expects 2 parameters.');
+        }
 
-    var retVar
+    var retVar;
     _.map(list, function (element, idx) {
-      var match = _.where([element], searchTerms)
+      var match = _.where([element], searchTerms);
 
       if (match.length > 0) {
-        retVar = match[0]
-        retVar.index = idx
+        retVar = match[0];
+        retVar.index = idx;
       }
-    })
+    });
     // @todo: Always return the same type.
-    return retVar
+    return retVar;
   },
 
   /**
@@ -34,10 +34,10 @@ module.exports = {
      */
   logg: function (arg1) {
     if (typeof arg1 === 'object') {
-      console.log(JSON.stringify(arg1, null, 4))
-      return
+      console.log(JSON.stringify(arg1, null, 4));
+      return;
     }
-    console.log(arg1)
+    console.log(arg1);
   },
   /**
      * Simple verification of song options
@@ -48,7 +48,7 @@ module.exports = {
      */
   verifySongOpts: function (opts) {
     if (!opts || opts[app.songAttributesKey] === undefined) {
-      throw new Error('Global data is required')
+      throw new Error('Global data is required');
     }
   },
   /**
@@ -60,7 +60,7 @@ module.exports = {
      */
   requireBoolean: function (boolReq) {
     if (!_.isBoolean(boolReq)) {
-      throw new Error(' This ' + typeof (boolReq) + ' must be boolean')
+      throw new Error(' This ' + typeof (boolReq) + ' must be boolean');
     };
   }
-}
+};

@@ -3,10 +3,10 @@
  *
  */
 
-var util = require('util')
+var util = require('util');
 
 function Segment () {
-  this.name = 'Segment'
+  this.name = 'Segment';
 }
 
-module.exports = Segment
+module.exports = Segment;

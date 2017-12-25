@@ -1,5 +1,5 @@
 
-var parser = require('note-parser')
+var parser = require('note-parser');
 
 /**
  * Constructs instance of object with class Note
@@ -13,7 +13,7 @@ var parser = require('note-parser')
  * @return {undefined}
  */
 function Note (atrs) {
-  this.ntAttrs = atrs.note
+  this.ntAttrs = atrs.note;
 };
 
 /**
@@ -23,15 +23,15 @@ function Note (atrs) {
  * @return {undefined}
  */
 Note.prototype.setOct = function (newOct) {
-  letter = this.getLetter()
+  letter = this.getLetter();
   var newReadableNote = letter + newOct.toString(),
     newFreq = parser.freq(newReadableNote),
-    newMid = parser.midi(newReadableNote)
+    newMid = parser.midi(newReadableNote);
 
-  this.ntAttrs.freq = newFreq
-  this.ntAttrs.oct = newOct
-  this.ntAttrs.midi = newMid
-}
+  this.ntAttrs.freq = newFreq;
+  this.ntAttrs.oct = newOct;
+  this.ntAttrs.midi = newMid;
+};
 
 /**
  * Return the note's letter in the scale
@@ -39,7 +39,7 @@ Note.prototype.setOct = function (newOct) {
  * @return {string} note letter value
  */
 Note.prototype.getLetter = function () {
-  return this.ntAttrs.letter
-}
+  return this.ntAttrs.letter;
+};
 
-module.exports = Note
+module.exports = Note;

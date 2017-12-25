@@ -7,12 +7,12 @@ var Frase = function (params) {
     'disableArpeg',
     'config',
     'phaseConfig'
-  ]
+  ];
 
-  this.notes = null
-  this.fraseDuration = null
-  this.imposedFraseLength = null
-  this.disableArpeg = null
+  this.notes = null;
+  this.fraseDuration = null;
+  this.imposedFraseLength = null;
+  this.disableArpeg = null;
 
   /**
    * Initialize the object
@@ -21,16 +21,16 @@ var Frase = function (params) {
    * @return {Undefined}
    */
   this.initialize = function (parameters) {
-    this.set('notes', parameters.notes)
-    this.set('index', parameters.index)
-    this.set('imposedFraseLength', parameters.phaseOptions.imposedLength)
-    this.set('fraseDuration', parameters.phaseOptions.duration)
+    this.set('notes', parameters.notes);
+    this.set('index', parameters.index);
+    this.set('imposedFraseLength', parameters.phaseOptions.imposedLength);
+    this.set('fraseDuration', parameters.phaseOptions.duration);
     // importantly, for now you can't set the disableArpeg straight
     // from the bar; only has granularity at song level
-    this.set('disableArpeg', parameters.phaseOptions.disableArpeg)
-    this.set('config', parameters.config)
-    this.set('phaseConfig', parameters.phaseOptions.manipParams)
-  }
+    this.set('disableArpeg', parameters.phaseOptions.disableArpeg);
+    this.set('config', parameters.config);
+    this.set('phaseConfig', parameters.phaseOptions.manipParams);
+  };
 
   /**
    * Get the index of the frase within the song.
@@ -38,8 +38,8 @@ var Frase = function (params) {
    * @return {Number}   Integer (index)
    */
   this.getIndex = function () {
-    return this.get('index')
-  }
+    return this.get('index');
+  };
 
   /**
    * Return a reference to the Frase's notes.
@@ -47,8 +47,8 @@ var Frase = function (params) {
    * @return {Array}
    */
   this.referToNotes = function () {
-    return this.get('notes')
-  }
+    return this.get('notes');
+  };
 
   /**
    * Getter
@@ -59,13 +59,12 @@ var Frase = function (params) {
    */
   this.get = function (propName) {
     if (allowedProps.indexOf(propName) === -1) {
-      throw new Error('Disallowed property name:' + propName)
+      throw new Error('Disallowed property name:' + propName);
     }
-    return this[propName]
-  }
+    return this[propName];
+  };
 
-
-    /**
+  /**
      * setter
      * @todo: rewrite to use Es6 setter
      *
@@ -75,15 +74,15 @@ var Frase = function (params) {
      */
   this.set = function (propName, propVal) {
     if (allowedProps.indexOf(propName) === -1) {
-      throw new Error('Disallowed property name:' + propName)
+      throw new Error('Disallowed property name:' + propName);
     }
 
     if (propVal === undefined) {
-      this[propName] = null
+      this[propName] = null;
     }
 
-    this[propName] = propVal
-  }
+    this[propName] = propVal;
+  };
 
   /**
    * Run this passed func for each note
@@ -92,28 +91,28 @@ var Frase = function (params) {
    * @return {Undefined}
    */
   this.forEachNote = function (fn) {
-    _.each(this.get('notes'), fn)
-  }
+    _.each(this.get('notes'), fn);
+  };
 
   /**
    * Get imposed        frase length
    * @return {Number}   Integral frase length
    */
   this.getImposedFraseLength = function () {
-    return this.get('imposedFraseLength')
-  }
+    return this.get('imposedFraseLength');
+  };
 
   /**
    * Get the first note
    * @return {Object}   Note object
    */
   this.getFirstNote = function () {
-    var notes1 = this.get('notes')
+    var notes1 = this.get('notes');
     if (notes1.notes) {
-      return notes1.notes[0].note
+      return notes1.notes[0].note;
     }
-    return this.get('notes')[0].note
-  }
+    return this.get('notes')[0].note;
+  };
 
   /**
      * Based on previous frase, give this one its
@@ -123,30 +122,30 @@ var Frase = function (params) {
      * @return {Undefined}
      */
   this.hookTo = function (priorFollowingTime) {
-    var fnt = this.getFirstNote()
+    var fnt = this.getFirstNote();
 
     if (this.get('disableArpeg')) {
       // multiply this frase position by the fraseDuration (chord duration)
-      fnt['fraseDelay'] = (this.getIndex() * this.get('fraseDuration'))
+      fnt['fraseDelay'] = (this.getIndex() * this.get('fraseDuration'));
     } else {
       // mulitply insead by the forced phrase length
-      fnt['fraseDelay'] = (this.getIndex() * this.getImposedFraseLength())
+      fnt['fraseDelay'] = (this.getIndex() * this.getImposedFraseLength());
     }
 
-    fnt['fraseDelay'] += priorFollowingTime
+    fnt['fraseDelay'] += priorFollowingTime;
 
     if (isNaN(fnt['fraseDelay']) || fnt['fraseDelay'] == undefined) {
-      throw new Error('Unable to set frase timing')
+      throw new Error('Unable to set frase timing');
     }
-  }
+  };
 
   /**
    * Get the note       count
    * @return {Number}   Integral note count
    */
   this.getNoteCount = function () {
-    return this.referToNotes().length
-  }
+    return this.referToNotes().length;
+  };
 
   /**
    * Get the "disableArpeg" prop
@@ -154,8 +153,8 @@ var Frase = function (params) {
    * @return {Boolean}
    */
   this.getDisableArpeg = function () {
-    return this.get('disableArpeg')
-  }
+    return this.get('disableArpeg');
+  };
 
   /**
    * Get config of manipulator being appled to to the
@@ -166,14 +165,14 @@ var Frase = function (params) {
    * @return {mixed}    Config
    */
   this.getManipParam = function (manipName) {
-    var confDat = this.get('config')
+    var confDat = this.get('config');
     if (confDat) {
       if (confDat[manipName] !== undefined) {
-        return confDat[manipName]
+        return confDat[manipName];
       }
     }
-    return this._getPhaseManipParam(manipName)
-  }
+    return this._getPhaseManipParam(manipName);
+  };
 
   /**
    * Get config of manipulator being appled to to the
@@ -183,14 +182,14 @@ var Frase = function (params) {
    * @return {mixed}    Config
    */
   this._getPhaseManipParam = function (manipName) {
-    var phsConfDat = this.get('phaseConfig')
+    var phsConfDat = this.get('phaseConfig');
 
     if (phsConfDat) {
       if (phsConfDat[manipName] !== undefined) {
-        return phsConfDat[manipName]
+        return phsConfDat[manipName];
       }
     }
-  }
+  };
   /**
      * If arpeg is not disabled, use imposedFraseLength
      * If arpeg is disabled, use fraseDuration; this means the
@@ -201,34 +200,34 @@ var Frase = function (params) {
     var relativeFollowTime,
       absoFollowingTime,
       fnt = this.getFirstNote(),
-      noteCnt = this.getNoteCount()
+      noteCnt = this.getNoteCount();
 
     if (this.getDisableArpeg() === true) {
       // A frase is a chord; use chord duration
-      relativeFollowTime = this.getIndex() * this.getFraseDuration()
+      relativeFollowTime = this.getIndex() * this.getFraseDuration();
     } else {
       // A frase is a series of notes; this is the reason for imposed
       // frase len property
-      relativeFollowTime = this.getIndex() * this.getImposedFraseLength()
+      relativeFollowTime = this.getIndex() * this.getImposedFraseLength();
     }
 
     if (relativeFollowTime === undefined) {
       if (this.getIndex() === 0) {
-        var relativeFollowTime = 0
+        var relativeFollowTime = 0;
       }
-      throw new Error('Could not obtain relative following time')
+      throw new Error('Could not obtain relative following time');
     }
 
     // We always want to offset it to the phrase
-    absoFollowingTime = relativeFollowTime + phaseDelay
+    absoFollowingTime = relativeFollowTime + phaseDelay;
 
     if (!absoFollowingTime && absoFollowingTime !== 0) {
-      throw new Error('Could not obtain absolute following time')
+      throw new Error('Could not obtain absolute following time');
     }
-    return absoFollowingTime
-  }
+    return absoFollowingTime;
+  };
 
-  this.initialize(params)
-}
+  this.initialize(params);
+};
 
-module.exports = Frase
+module.exports = Frase;

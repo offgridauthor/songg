@@ -3,17 +3,17 @@
  *
  */
 var util = require('util'),
-  Manipulator = require('./Manipulator.js')
+  Manipulator = require('./Manipulator.js');
 
 /**
  * Primary class
  */
 function PhaseManipulator () {
-  Manipulator.apply(this, arguments)
-  this.name = 'PhaseManipulator'
+  Manipulator.apply(this, arguments);
+  this.name = 'PhaseManipulator';
 }
 
-util.inherits(PhaseManipulator, Manipulator)
+util.inherits(PhaseManipulator, Manipulator);
 
 /**
  * Within specified phase, execute specified function on each bar.
@@ -27,16 +27,16 @@ util.inherits(PhaseManipulator, Manipulator)
  */
 PhaseManipulator.prototype.forEachBar = function (phs, fn, params, modFn) {
   if (!_.isFunction(modFn)) {
-    throw new Error('Function is required.')
+    throw new Error('Function is required.');
   }
 
   _.forEach(phs.referToFrases(), function (bar0, idx) {
-    params.barIndex = idx
+    params.barIndex = idx;
     if (modFn(idx)) {
-      fn(bar0, params)
-      bar0 = null
+      fn(bar0, params);
+      bar0 = null;
     }
-  })
-}
+  });
+};
 
-module.exports = PhaseManipulator
+module.exports = PhaseManipulator;

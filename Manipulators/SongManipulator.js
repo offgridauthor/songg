@@ -5,17 +5,17 @@
  *
  */
 var util = require('util'),
-  Manipulator = require('./Manipulator.js')
+  Manipulator = require('./Manipulator.js');
 
 /**
  * Primary class
  * @return {Undefined}
  */
 var SongManipulator = function () {
-  this.name = 'SongManipulator'
-  Manipulator.apply(this, arguments)
-}
+  this.name = 'SongManipulator';
+  Manipulator.apply(this, arguments);
+};
 
-util.inherits(SongManipulator, Manipulator)
+util.inherits(SongManipulator, Manipulator);
 
-module.exports = SongManipulator
+module.exports = SongManipulator;

@@ -16,14 +16,14 @@ var util = require('util'),
   that = this,
   defaultArp = arpeggiation,
   fraseArp,
-  phsArp
+  phsArp;
 
 function Arpeggiator () {
-  PhaseManipulator.apply(this, arguments)
-  this.name = 'Arpeggiator'
+  PhaseManipulator.apply(this, arguments);
+  this.name = 'Arpeggiator';
 }
 
-util.inherits(Arpeggiator, PhaseManipulator)
+util.inherits(Arpeggiator, PhaseManipulator);
 
 /**
  * Apply arpeggiation.
@@ -40,41 +40,41 @@ util.inherits(Arpeggiator, PhaseManipulator)
  */
 Arpeggiator.prototype.go = function (phs) {
   if (!phs.getImposedFraseLength()) {
-    throw new Error('Custom arpeggation requires an imposed frase length in phase.')
+    throw new Error('Custom arpeggation requires an imposed frase length in phase.');
   }
 
-  that = this
-  defaultArp = arpeggiation
-  phsArp = phs.getManipParam(this.name)
+  that = this;
+  defaultArp = arpeggiation;
+  phsArp = phs.getManipParam(this.name);
 
   this.arpeg = function (br, params) {
-    fraseArp = br.getManipParam(that.name)
+    fraseArp = br.getManipParam(that.name);
 
-    var doDisable = br.get('disableArpeg') || false
+    var doDisable = br.get('disableArpeg') || false;
 
     _.each(br.notes, function (ntDat, idx) {
-      var nt = new Note(ntDat)
+      var nt = new Note(ntDat);
 
       if (doDisable) {
-        nt.ntAttrs.relativeTime = 0
+        nt.ntAttrs.relativeTime = 0;
       }
 
       var applicableDelay = null,
-        pegMap = that.getPegMapFromPrecedence(fraseArp, phsArp, defaultArp)
+        pegMap = that.getPegMapFromPrecedence(fraseArp, phsArp, defaultArp);
 
       if (pegMap[idx] !== undefined) {
-        nt.ntAttrs.relativeTime = pegMap[idx]
+        nt.ntAttrs.relativeTime = pegMap[idx];
       } else {
-        nt.ntAttrs.relativeTime = 0
+        nt.ntAttrs.relativeTime = 0;
       }
-    })
-  }
+    });
+  };
 
   this.getPegMapFromPrecedence = function (fr, phz, hard) {
-    return fr || (phz || hard)
-  }
+    return fr || (phz || hard);
+  };
 
-  this.forEachBar(phs, this.arpeg, {}, modulatorFn)
-}
+  this.forEachBar(phs, this.arpeg, {}, modulatorFn);
+};
 
-module.exports = Arpeggiator
+module.exports = Arpeggiator;
