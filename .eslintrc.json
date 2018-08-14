@@ -1,8 +1,12 @@
-module.exports = {
+{
     "extends": "standard",
+    "globals": {
+        "_": false,
+        "app": false
+    },
     "rules": {
         "one-var": [1, "always"],
         "semi": [1, "always"],
-        "indent": ["error", 4]
+        "indent": ["error", 2]
     }
-};
+}

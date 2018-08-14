@@ -134,13 +134,13 @@ var Frase = function (params) {
 
     fnt['fraseDelay'] += priorFollowingTime;
 
-    if (isNaN(fnt['fraseDelay']) || fnt['fraseDelay'] == undefined) {
+    if (isNaN(fnt['fraseDelay']) || fnt['fraseDelay'] === undefined) {
       throw new Error('Unable to set frase timing');
     }
   };
 
   /**
-   * Get the note       count
+   * Get the note count
    * @return {Number}   Integral note count
    */
   this.getNoteCount = function () {
@@ -175,6 +175,16 @@ var Frase = function (params) {
   };
 
   /**
+   * clone notes
+   */
+  this.frozenNotes = function () {
+    if (!Object.isFrozen(this.notes)) {
+      Object.freeze(this.notes);
+    }
+    return this.notes;
+  };
+
+  /**
    * Get config of manipulator being appled to to the
    * Frase context.
    *
@@ -198,9 +208,7 @@ var Frase = function (params) {
      */
   this.calcFollowingTime = function (phaseDelay) {
     var relativeFollowTime,
-      absoFollowingTime,
-      fnt = this.getFirstNote(),
-      noteCnt = this.getNoteCount();
+      absoFollowingTime;
 
     if (this.getDisableArpeg() === true) {
       // A frase is a chord; use chord duration
@@ -213,7 +221,7 @@ var Frase = function (params) {
 
     if (relativeFollowTime === undefined) {
       if (this.getIndex() === 0) {
-        var relativeFollowTime = 0;
+        relativeFollowTime = 0;
       }
       throw new Error('Could not obtain relative following time');
     }

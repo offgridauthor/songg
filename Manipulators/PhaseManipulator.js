@@ -39,4 +39,38 @@ PhaseManipulator.prototype.forEachBar = function (phs, fn, params, modFn) {
   });
 };
 
+PhaseManipulator.prototype.forMatchingFrases = function (crdNm, crdIdx, method) {
+  const query = this.parseFraseQuery(crdIdx),
+    fr = this.phase[query.q](crdNm, query.k);
+
+  if (!fr) {
+    throw new Error('could not find frase ', crdNm, crdIdx);
+  }
+
+  method(fr);
+};
+
+PhaseManipulator.prototype.parseFraseQuery = (crdIdx) => {
+  if (_.isNumber(crdIdx)) {
+    return {q: 'findFraseByIndex', k: crdIdx};
+  }
+
+  if (!_.isObject(crdIdx)) {
+    throw new Error('Improperly formatted locator details');
+  }
+
+  if (crdIdx.range) {
+    return {q: 'findFrasesInRange', k: crdIdx.range};
+  }
+
+  if (crdIdx.index) {
+    return {q: 'findFraseByIndex', k: crdIdx.index};
+  }
+  throw new Error('Improperly formatted locator details (see above)');
+};
+
+PhaseManipulator.prototype.setPhase = function (phs) {
+  this.phase = phs;
+};
+
 module.exports = PhaseManipulator;

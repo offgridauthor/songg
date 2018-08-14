@@ -1,7 +1,8 @@
 /**
  * For a single bar, temporally spread the notes according to the indicated
  * pattern.
- *
+ * @todo: This really needs to be rewritten as a FraseManip that runs in the right way,
+ * instead of being a PhaseManip
  */
 
 var util = require('util'),
@@ -49,8 +50,8 @@ Arpeggiator.prototype.go = function (phs) {
 
   this.arpeg = function (br, params) {
     fraseArp = br.getManipParam(that.name);
-
-    var doDisable = br.get('disableArpeg') || false;
+    var doDisable = br.get('disableArpeg') || false,
+      pegMap;
 
     _.each(br.notes, function (ntDat, idx) {
       var nt = new Note(ntDat);
@@ -59,8 +60,7 @@ Arpeggiator.prototype.go = function (phs) {
         nt.ntAttrs.relativeTime = 0;
       }
 
-      var applicableDelay = null,
-        pegMap = that.getPegMapFromPrecedence(fraseArp, phsArp, defaultArp);
+      pegMap = that.getPegMapFromPrecedence(fraseArp, phsArp, defaultArp);
 
       if (pegMap[idx] !== undefined) {
         nt.ntAttrs.relativeTime = pegMap[idx];
@@ -68,6 +68,18 @@ Arpeggiator.prototype.go = function (phs) {
         nt.ntAttrs.relativeTime = 0;
       }
     });
+    // sort notes for clearer product later at
+    // the getWriteableEvents stage.
+    that.orderNotes(br.notes);
+  };
+
+  this.orderNotes = function (notes) {
+    // let nts = JSON.parse(JSON.stringify(notes));
+    notes.sort(function (a, b) {
+      return a.note.relativeTime > b.note.relativeTime;
+    }).map(function (entry) {
+      return entry.score;
+    }).reverse();
   };
 
   this.getPegMapFromPrecedence = function (fr, phz, hard) {
