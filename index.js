@@ -3,7 +3,7 @@ import Inflator from './Inflator.js';
 const express = require('express'),
   app = express(),
   fs = require('fs'),
-  dat = fs.readFileSync('./Songs/unpublished/practice.json'),
+  dat = fs.readFileSync('./Songs/ForLyrics.json'),
   _ = require('underscore'),
   utilExt = require('./codelibs/utilsExtension.js'),
   path = require('path');

@@ -1,100 +1,206 @@
 {
-    "disableArpeg": false,
-    "songManipulators": [
-        "Arpeggiator"
-    ],
-    "chords": [
-        {
-            "name": "Em",
-            "chord": "m",
-            "octave": "E4"
-        },
-        {
-            "name": "Am5",
-            "chord": "m",
-            "octave": "A3"
-        },
-        {
-            "name": "B7b5",
-            "chord": "7b5",
-            "octave": "B4"
-        },
-        {
-            "name": "Bb6",
-            "chord": "Mb6",
-            "octave": "B4"
-        },
-        {
-            "name": "M13",
-            "chord": "M13",
-            "octave": "C3"
-        },
-        {
-            "name": "M",
-            "chord": "M",
-            "octave": "C3"
-        },
-        {
-            "name": "FM",
-            "chord": "4",
-            "octave": "C4"
-
-        },
-        {
-            "name": "Em5",
-            "chord": "m",
-            "octave": "E3"
-        },
-        {   "name": "G",
-            "chord": "M",
-            "octave": "G3"
-        },
-
-        {
-            "name": "Em6",
-            "chord": "m",
-            "octave": "E3"
-        },
-        {
-            "name": "Dm5",
-            "chord": "m",
-            "octave": "D3"
-        }
-    ],
-    "phases": {
-            "aphrodite": {
-                "measureCount": 2,
-                "composition": [
-                    {
-                        "name": "M",
-                        "Arpeggiator": [0, 0, 0, 0],
-                        "RepeatNotes": [],
-                        "length": 400
+  "disableArpeg": false,
+  "manipParams": {
+    "Arpeggiator": [
+      {
+        "phases": "aphrodite",
+        "data": [3,2,1,0]
+      }
+    ]
+  },
+  "chords": [
+      {
+          "name": "Em",
+          "chord": "m",
+          "octave": "E4"
+      },
+      {
+          "name": "Dm",
+          "chord": "m",
+          "octave": "D4"
+      },
+      {
+          "name": "F",
+          "chord": "M",
+          "octave": "F4"
+      },
+      {
+          "name": "FMaj7",
+          "chord": "Maj7",
+          "octave": "F4"
+      },
+      {
+          "name": "CMaj7",
+          "chord": "Maj7",
+          "octave": "C4"
+      },
+      {
+          "name": "C13",
+          "chord": "M13",
+          "octave": "C4"
+      },
+      {
+          "name": "Em7",
+          "chord": "m7",
+          "octave": "E4"
+      },
+      {
+        "name": "C",
+        "chord": "M",
+        "octave": "C4"
+      },
+      {
+          "name": "Dm7",
+          "chord": "m7",
+          "octave": "D4"
+      },
+      {
+        "name": "Bo",
+        "chord": "o",
+        "octave": "B4"
+      },
+      {
+        "name": "Am",
+        "chord": "m",
+        "octave": "A4"
+      },
+      {
+          "name": "Em9",
+          "chord": "m9",
+          "octave": "E4"
+      },
+      {
+          "name": "Dmadd9",
+          "chord": "madd9",
+          "octave": "D4"
+      },
+      {
+        "name": "Do",
+        "chord": "o",
+        "octave": "D4"
+      },
+      {
+        "name": "G",
+        "chord": "M",
+        "octave": "G4"
+      },
+      {
+        "name": "G7",
+        "chord": "7",
+        "octave": "G4"
+      },
+      {
+        "name": "G-repeat",
+        "chord": "M",
+        "octave": "G4"
+      },
+      {
+        "name": "Co",
+        "chord": "o",
+        "octave": "C4"
+      },
+      {
+        "name": "Ebo",
+        "chord": "o",
+        "octave": "Eb4"
+      },
+      {
+        "name": "D",
+        "chord": "M",
+        "octave": "D4"
+      }
+  ],
+  "phases": {
+      "aphrodite": {
+          "measureCount": 1,
+          "remark": "consider E-flat-dim (Ebo), D, Ddim, Cdim ",
+          "composition": [
+            "G",
+            "G",
+            "F", "F",
+            "Em", "Em",
+            "Dm", "Dm"
+          ],
+          "demoBeatLength": 0.8,
+          "fraseDuration": 64,
+          "imposedFraseLength": 256,
+          "fraseDel": 0,
+          "manipParams": {
+                "RootChanger": [{
+                  "chord": "Dm",
+                  "data": [{
+                    "octaves": 2
+                  }]
+                }],
+                "NoteRepeater": [
+                  {
+                    "chord": "F",
+                    "location": {
+                      "index": 2,
+                      "range": null
                     },
-                    "M",
-                    "M",
-                    "M",
-                    "B7b5","Bb6","Bb6","Bb6","Bb6", "G", "G", "G", "G", "G", "Dm5", "Dm5", "Dm5", "Dm5", "Em", "Em"
+                    "data": [
+                      {
+                        "index": [2]
+                      }
+                    ]
+                  }
                 ],
-                "demoBeatLength": 0.8,
-                "fraseDuration": 256,
-                "imposedFraseLength": 256,
-                "fraseDel": 0,
-                "manipParams": {
-                    "Arpeggiator": [0, 164, 220, 250]
-                }
-            },
-            "calypso": {
-                "measureCount": 2,
-                "composition": [
-                    "Dm5","Dm5","Dm5","Dm5","Dm5","M13","M13","M13","M13","M","G","G","G", "Em6", "Em6", "Em6"
+                "Melody": [
+                  {
+                    "name": "odyssey",
+                    "timeUnit": "64",
+                    "notes": [
+                        { "note": "C4",
+                          "time": "1"
+                        },
+                        {
+                          "note": "Db4",
+                          "time": "2"
+                        }
+                    ]
+                  }
                 ],
-                "demoBeatLength": 0.8,
-                "fraseDuration": 110,
-                "imposedFraseLength": 384,
-                "fraseDel": 0,
-                "manipParams": {
-                }
-            }
+                "Snazzifier": [
+                  {
+                    "chord": "G",
+                    "location": {
+                      "index": 1,
+                      "range": null
+                    },
+                    "action": "split-last",
+                    "scale": "C minor",
+                    "data": [
+                      {
+                        "direction": "low->high",
+                        "cuts": 3,
+                        "scale": ["D", "E", "F", "G", "A", "B"],
+                        "directives" : {
+                          "limitOctave": [0, 0]
+                        }
+                      },
+                      {
+                        "direction": "low->high",
+                        "cuts": 1,
+                        "scale": "USE_CHORD",
+                        "directives" : {
+                          "limitOctave": [0, -3]
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "Arpeggiator": [
+                  {
+                    "chord": "Dm",
+                    "data": [0, 64, 128, 128, 184]
+                  },
+                  {
+                    "chord": "F",
+                    "data": [184, 128,64,0]
+                  }
+                ]
+              }
+          }
         }
     }
