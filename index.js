@@ -3,16 +3,11 @@ import Inflator from './Inflator.js';
 const express = require('express'),
   app = express(),
   fs = require('fs'),
-  dat = fs.readFileSync('./Songs/ForLyrics.json'),
+  dat = fs.readFileSync('./Songs/Example.json'),
   _ = require('underscore'),
   utilExt = require('./codelibs/utilsExtension.js'),
   path = require('path');
 _._ = utilExt;
-
-// @todo: del PhaseElevator; it should be a post-processor after "getWriteable" happenes
-// in the song class.
-//
-// const PhaseElevator = require('./Manipulators/PhaseElevator.js');
 
 /**     As of this note, run the server with "npm run mon", which accesses
         a command defined in package.json
