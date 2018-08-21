@@ -3,11 +3,10 @@ import Inflator from './Inflator.js';
 const express = require('express'),
   app = express(),
   fs = require('fs'),
-  dat = fs.readFileSync('./Songs/unpublished/durne.json'),
+  dat = fs.readFileSync('./Songs/unpublished/practice.json'),
   _ = require('underscore'),
   utilExt = require('./codelibs/utilsExtension.js'),
-  path = require('path'),
-  Arpeggiator = require('./Manipulators/Arpeggiator.js');
+  path = require('path');
 _._ = utilExt;
 
 // @todo: del PhaseElevator; it should be a post-processor after "getWriteable" happenes
@@ -15,14 +14,13 @@ _._ = utilExt;
 //
 // const PhaseElevator = require('./Manipulators/PhaseElevator.js');
 
-
 /**     As of this note, run the server with "npm run mon", which accesses
         a command defined in package.json
 
-        The code is being converted to ES6/7 via Babel, and the "mon"
-        script includes that directive.
+  The code is being converted to ES6/7 via Babel, and the "mon"
+  script includes that directive.
 
-        */
+*/
 
 global._ = _;
 global.app = app;
@@ -43,14 +41,13 @@ app.get('/songSystem', (request, response) => {
 
   // The inflator sort of breathes initial life into the raw song data.
   const song = (new Inflator()).inflate(
-      JSON.parse(dat)
-    ),
-    arp = new Arpeggiator();
+    JSON.parse(dat)
+  );
+
   let bars,
     savedFile,
     songData;
 
-  song.portal('aphrodite', arp.go, { ctxt: arp });
   song.prepareSave();
   song.freezePhases();
   song.runHooks();

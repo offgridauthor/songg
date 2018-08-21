@@ -19,6 +19,11 @@ class Note {
     this.ntAttrs = atrs.note;
   }
 
+  clone () {
+    let clonedAttribs = this.getNoteAttribs();
+    return new Note({note: clonedAttribs});
+  }
+
   compile () {
     let newAttrs = tonalNote.props(this.letter + this.oct);
     this.ntAttrs = _.extend(this.ntAttrs, newAttrs);
@@ -27,6 +32,11 @@ class Note {
   multiplyDuration (multiplicand) {
     this.duration = this.duration * multiplicand;
   }
+
+  raiseOctBy (raiseBy) {
+    this.oct = this.oct + 1;
+  }
+
 
   /**
    * Set the letter of this note.
@@ -76,8 +86,10 @@ class Note {
 
 
   /**
-   * Set the oct of this note.
+   * These getter and setter have aliases.
+     Set the oct of this note.
      Always triggers the refresh of all other attributes.
+     See below getter and setter for aliases for getter and setter.
    */
   set oct (oct) {
     if (!this.letter) {
@@ -93,6 +105,14 @@ class Note {
 
   get oct () {
     return this.ntAttrs.oct;
+  }
+
+  get octave () {
+    return this.oct;
+  }
+
+  set octave (newOct) {
+    return this.oct = newOct;
   }
 
   getNoteAttribs () {

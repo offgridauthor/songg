@@ -2,75 +2,205 @@
  * Extendable class for altering phases of Songs
  *
  */
-var util = require('util'),
-  Manipulator = require('./Manipulator.js');
+import Manipulator from './Manipulator.js';
+import fs from 'fs';
 
 /**
- * Primary class
+ * Instatiable class for manipulating phases.
  */
-function PhaseManipulator () {
-  Manipulator.apply(this, arguments);
-  this.name = 'PhaseManipulator';
-}
+class PhaseManipulator extends Manipulator {
+  constructor (manipName) {
+    super();
+    this.name = 'PhaseManipulator';
 
-util.inherits(PhaseManipulator, Manipulator);
+    // override this with something more specific in the child classes, probably.
+    // or, it can be used to cut directly to frase manipulators
+    this.action = 'runFraseManipulators';
 
-/**
- * Within specified phase, execute specified function on each bar.
- *
- * @param  {Object}   phs    Phase data
- * @param  {Function} fn     Function that will actually manipulate the note in some way
- * @param  {Object}   params Arguments or options for call to fn
- * @param  {Function} modFn  Modulator: function that determines which notes on each bar to alter
- *
- * @return {undefined}
- */
-PhaseManipulator.prototype.forEachBar = function (phs, fn, params, modFn) {
-  if (!_.isFunction(modFn)) {
-    throw new Error('Function is required.');
+    if (typeof (manipName) === 'string') {
+      this.manipName = 'Frase' + manipName;
+    }
   }
 
-  _.forEach(phs.referToFrases(), function (bar0, idx) {
-    params.barIndex = idx;
-    if (modFn(idx)) {
-      fn(bar0, params);
-      bar0 = null;
-    }
-  });
-};
+  /**
+   * Run a phrase on the
+   *
+   * @todo: right now, only handles a single frase; needs
+   * to handle multiple locatable within here (move code
+   * for multiple into here)
+   *
+   */
+  findAndManipulate (dat) {
+    let action = (this.action || 'simple'),
+      method = (fr) => {
+        this[action](fr, dat);
+      };
+    // 'chord' is e.g. "Dm", and "location" is e.g. { range: ['<4'] }
+    this.forMatchingFrases(dat['chord'], dat['location'], method);
+  }
 
-PhaseManipulator.prototype.forMatchingFrases = function (crdNm, crdIdx, method) {
-  const query = this.parseFraseQuery(crdIdx),
+  /**
+   * Default action.
+   *
+   */
+  runFraseManipulators (someFrases, dat) {
+    _.each(someFrases, (fr) => {
+      this.manipulateFrase(fr, dat);
+    });
+  }
+
+  /**
+   * Apply Snazzification.
+   *
+   * Locate the bar within the phase.
+   * Use its data to add and remove notes.
+   *
+   * @param  {Array}  dat   Dat from the specified phs
+   *
+   * @return {undefined}
+   */
+  go (dat) {
+    const that = this;
+    this.setSongData(this.phase.get('chords'));
+    // one FraseManipulator subclass will be called per "asset"
+    // In the phase, "dat" originate as an array prop such as
+    // manipParms.Snazzifier or manipParams.NoteRepeater.
+    _.each(dat, (assets) => {
+      // one FraseManipulator instantiation, coming up.
+      that.findAndManipulate.call(this, assets);
+    });
+  }
+
+  /**
+   * Manipulate a frase (having isolated one for alteration)
+   *
+   */
+  manipulateFrase (fr, dat) {
+    this.requireValidFraseManipulator(this.manipName);
+
+    const manipInstance = this.getFraseManipInstance(this.manipName);
+
+    // Carry out manipulations
+    manipInstance.setSongData(this.getSongData());
+    manipInstance.notes = fr.frozenNotes();
+    manipInstance.config = dat;
+
+    manipInstance.config.action =
+      manipInstance.config.action || 'simple';
+
+    manipInstance.go();
+
+    // for the frase in the actual song, set the notes to the new set of
+    // manipulated notes that we obtain from the manipulator.
+    fr.set('notes', manipInstance.notes);
+
+    // Here, caching the fraseSnazzifiers, which has never been
+    // needed.
+    // this.fraseSnazzifiers.push();
+  }
+
+  requireValidFraseManipulator (nm) {
+    const
+      manipName = './Manipulators/' + nm + '.js',
+      doesExist = fs.existsSync(manipName),
+      doThrow = !doesExist;
+
+    if (doThrow) {
+      throw new Error('Frase Manipulator "' + manipName + '" does not seem to exist.');
+    }
+  }
+
+  getFraseManipInstance (nm) {
+    const ManipClass = require('./' + nm + '.js'),
+      manipInstance = new ManipClass();
+
+    if (!manipInstance || !manipInstance.setSongData) {
+      throw new Error('Frase Manipulator "' + nm + '" does not seem to exist or is malforned.');
+    }
+
+    return manipInstance;
+  }
+
+  /**
+   * given frase query info and a method, run the method upon all
+   * the matching frases.
+   */
+  forMatchingFrases (crdNm, crdQuery, method) {
+    let fr = this.findMatchingFrases(crdNm, crdQuery);
+    // the above returns a subset of all frases such as "Dm" (frase name)
+    if (!fr) {
+      throw new Error('could not find frases ', crdNm, crdQuery);
+    }
+
+    // run method on the frase
+    method(fr);
+  }
+
+  findMatchingFrases (crdNm, crdQuery) {
+    // First parse the query that indicates a range of frases to which
+    // to apply the specified method.
+    let query, fr;
+
+    if (crdNm === undefined) {
+      crdNm = 'ALL';
+    }
+
+    if (crdQuery === undefined) {
+      // match all
+      crdQuery = { range: ['>0'] };
+    }
+
+    query = this.parseFraseQuery(crdQuery);
+
+    // use Phase methods to find the frases matched by the query.
+    // query.q is e.g. "findFrasesInRange" or "findFraseByIndex"
+    // and query.k is the specifying data, several numeric comparators
+    // or an index.
     fr = this.phase[query.q](crdNm, query.k);
 
-  if (!fr) {
-    throw new Error('could not find frase ', crdNm, crdIdx);
+    return fr;
   }
 
-  method(fr);
-};
+  /**
+   * parse frase query. this is just preprocessing, will not return the queried
+   * frases.
+   * @return {Object} Example is {q: 'findFraseByIndex', k: [2]}
+   *
+   * The "q" prop is a method name that exists on Phase.
+   * The "k" prop will be the argument (further "query" parameters, the
+   * variables in the query method call)
+   */
+  parseFraseQuery (crdIdx) {
+    if (_.isNumber(crdIdx)) {
+      return {q: 'findFraseByIndex', k: crdIdx};
+    }
 
-PhaseManipulator.prototype.parseFraseQuery = (crdIdx) => {
-  if (_.isNumber(crdIdx)) {
-    return {q: 'findFraseByIndex', k: crdIdx};
+    if (!_.isObject(crdIdx)) {
+      throw new Error('Improperly formatted locator details');
+    }
+
+    if (crdIdx.range) {
+      return {q: 'findFrasesInRange', k: crdIdx.range};
+    }
+
+    if (crdIdx.index) {
+      return {q: 'findFraseByIndex', k: crdIdx.index};
+    }
+
+    throw new Error('Improperly formatted locator details (see above)');
   }
 
-  if (!_.isObject(crdIdx)) {
-    throw new Error('Improperly formatted locator details');
+  set phase (phs) {
+    if (phs.constructor.name) {
+      this._phase = phs;
+    } else {
+      throw new Error('_phase can only be set to instance of class "Phase".');
+    }
   }
 
-  if (crdIdx.range) {
-    return {q: 'findFrasesInRange', k: crdIdx.range};
+  get phase () {
+    return this._phase;
   }
-
-  if (crdIdx.index) {
-    return {q: 'findFraseByIndex', k: crdIdx.index};
-  }
-  throw new Error('Improperly formatted locator details (see above)');
-};
-
-PhaseManipulator.prototype.setPhase = function (phs) {
-  this.phase = phs;
-};
+}
 
 module.exports = PhaseManipulator;

@@ -47,10 +47,12 @@ module.exports = {
      * @throws {Error}      If unverifiable
      */
   verifySongOpts: function (opts) {
+
     if (!opts || opts[app.songAttributesKey] === undefined) {
       throw new Error('Global data is required');
     }
   },
+
   /**
      * Require boolean; otherwise throw Error
      *

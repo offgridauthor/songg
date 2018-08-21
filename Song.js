@@ -132,10 +132,14 @@ var Phase = require('./Phase.js'),
        *
        * @return {undefined}
        */
-      addPhase: function (phase, nm, idx, opts) {
+      addPhase: function (phase, nm, opts) {
         if (typeof phase === 'object') {
           _._.verifySongOpts(opts);
-          this.phases[nm] = new Phase(phase, nm, idx, opts);
+
+          let idx = Object.keys(this.phases).length,
+            newPhs = new Phase(phase, nm, idx, opts);
+
+          this.phases[nm] = newPhs;
         } else {
           throw new Error('Argument should be an object (' + (typeof phase) + ') ');
         }
@@ -159,7 +163,7 @@ var Phase = require('./Phase.js'),
         return retVar;
       },
 
-      /**
+      /** 
        * Extract phase data and in the process time it correctly
        * with relation to other phases.
        *
@@ -182,7 +186,6 @@ var Phase = require('./Phase.js'),
 
         this.absolutizePhases();
         writeableEvents = this.getWriteableEvents();
-        // console.log(writeableEvents);
         return writeableEvents;
       },
       /**
@@ -253,12 +256,10 @@ var Phase = require('./Phase.js'),
       getWriteableEvents: function () {
         var that = this,
           totDelay = 0,
-          eventsToWrite = [],
-          isFirstPhase = 1;
+          eventsToWrite = [];
 
         _.each(this.phases, function (phase) {
-          var referee = phase.referToFrases(),
-            isFirstFrase = 1;
+          var referee = phase.referToFrases();
 
           _.each(referee, function (fraseArr, fraseIdx) {
             // for an entire bar:
@@ -287,7 +288,6 @@ var Phase = require('./Phase.js'),
 
               // treated now as a delay since previous start
               // duration for note off (second loop)
-
               duration = nDat.duration;
               startTick = totDelay + (delay || 0);
               onEvt = {
@@ -311,19 +311,17 @@ var Phase = require('./Phase.js'),
 
               // end loop iteration that handles a single note.
             });
-            isFirstFrase = 0;
           });
-          isFirstPhase = 0;
         });
         return eventsToWrite;
       },
       /**
-             *
-             *
-             * @param  {array} eventsToWrite [description]
-             * @param  {[type]} model         [description]
-             * @return {[type]}               [description]
-             */
+       *
+       *
+       * @param  {array} eventsToWrite [description]
+       * @param  {[type]} model         [description]
+       * @return {[type]}               [description]
+       */
       _midgenWriteEvents: function (eventsToWrite, model) {
         var that = this;
 
@@ -351,7 +349,6 @@ var Phase = require('./Phase.js'),
 
             var fnName = evt.type === 'on' ? 'midgNoteOn' : 'midgNoteOff';
             that[fnName](model, 0, evt.note, Math.abs(evt.midgTime));
-
           }
         );
       },
@@ -412,11 +409,11 @@ var Phase = require('./Phase.js'),
       },
 
       /**
-             * Get a note that can be rendered
-             *
-             * @param  {Object} nDat Note data
-             * @return {Object}      Note data renderable
-             */
+       * Get a note that can be rendered
+       *
+       * @param  {Object} nDat Note data
+       * @return {Object}      Note data renderable
+       */
       renderableNote: function (nDat) {
         return nDat.letter + nDat.acc + (nDat.oct).toString();
       },
@@ -439,8 +436,13 @@ var Phase = require('./Phase.js'),
       freezePhases: function () {
         this.forEachPhase(Object.freeze);
       },
+
+      /**
+       *
+       */
       runHooks: function () {
-        // Run song hooks
+
+        this.songHooks();
         this.phaseHooks();
         // Run bar hooks
       },
@@ -458,13 +460,49 @@ var Phase = require('./Phase.js'),
           this.phases,
           (phase) => {
             const phaseName = phase.get('name');
-
+            phase.hooks();
             // new up the class
             // class instance will be ctxt
-            that.portal(phaseName, spitName, { ctxt: {} });
+            //that.portal(phaseName, spitName, { ctxt: {} });
           }
         );
       },
+
+      songHooks: function () {
+        const that = this;
+        _.each(this.get('manipParams'), (manipDataList, manipName) => {
+          that.runManipOnPhases(manipName, manipDataList);
+        });
+      },
+
+      /**
+       *
+       */
+      runManipOnPhases: function (manipName, manipDataList) {
+        const that = this;
+
+        // Right now, we have a property such as "Arpeggiator" from the song's
+        // highest-level "manipParams" property; "Arpeggiator" (etc) is an Array
+        // with multiple datas for instance. (We are not running per-phase yet)
+        _.each(
+          manipDataList,
+          (manipDatum) => {
+            // Within this loop we now have recourse to the phases against which
+            // to run this manipulator entry.
+            let phaseList = typeof (manipDatum.phases) === 'string'
+                ? [manipDatum.phases]
+                : manipDatum.phases,
+              phaseInstances = _.map(phaseList, (p) => that.phases[p]);
+
+            // Run this one Arpeggiator.data config element against its listed
+            // phases.
+            _.each(phaseInstances, (phsInst) => {
+              phsInst.runManip([manipDatum], manipName);
+            });
+          }
+        );
+      },
+
       saveModel: function (model) {
         this.makeOutputDir();
 
@@ -484,10 +522,10 @@ var Phase = require('./Phase.js'),
           if (iterator > 0) {
             suffix = '-' + iterator;
             fileName =
-                        model.name +
-                            suffix +
-                            '.' +
-                            model.ext;
+              model.name +
+                  suffix +
+                  '.' +
+                  model.ext;
           }
 
           if (!this.pathExists(fileName)) {

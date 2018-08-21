@@ -15,24 +15,33 @@ class FraseSnazzifier extends FraseManipulator {
   }
 
   go () {
-    super.go();
+    let algoNm,
+      wrappedNotes,
+      rawNotes;
+    this.validateAlgo(this.config.action);
+    algoNm = this.convertAlgoNm(this.config.action);
+    wrappedNotes = this[algoNm](this.notes, this.config);
+    rawNotes = this.unwrapNotes(wrappedNotes);
+    this.notes = rawNotes;
   }
 
   /**
    * @todo: make into its own manipulator, with related functions possibly.
    */
-  add (nts, dat) {
+  add (nts) {
     _.each(nts, (nt) => {
       nt.note.duration = nt.note.duration * 4;
     });
   }
 
   // @todo: instead of passing "dat", we can now access config
-  splitLast (rawNotes, dat) {
+  splitLast (rawNotes) {
     const
       cloned = this.clone(rawNotes),
       nts = this.wrapNotes(cloned),
-      precedentScales = this.getPrecedentScales();
+      precedentScales = this.getPrecedentScales(),
+      dat = this.config;
+
     let splitNotes;
 
     // First, take off the old notes, put them aside....line them up
@@ -89,8 +98,6 @@ class FraseSnazzifier extends FraseManipulator {
         // for timing make it that of the "last" note (prior last note),
         // with idx * newDur added.durcool
         nt.relativeTime = originalNt.relativeTime + (idx * nt.duration);
-        console.log('original:', originalNt.letter, originalNt.relativeTime);
-        console.log('new note:', nt.relativeTime);
         let changeBy = (cuts - idx);
 
         const tonalAdjustments =
@@ -124,24 +131,13 @@ class FraseSnazzifier extends FraseManipulator {
     return returnArray;
   }
 
-  getPrecedentScales () {
-    const dat = this.config,
-      genScale = dat.scale ? super.tonalScale().notes(dat.scale) : [],
-      defScale = super.tonalScale().notes('C major'),
-      precedentScales = [];
-
-    precedentScales.unshift({
-      notes: defScale,
-      name: 'C major'
-    });
-
-    precedentScales.unshift({
-      notes: genScale,
-      name: dat.scale || null
-    });
-
-    return precedentScales;
+  convertAlgoNm (algoNm) {
+    return {
+      'split-last': 'splitLast',
+      'add': 'add'
+    }[algoNm];
   }
+
 }
 
 module.exports = FraseSnazzifier;

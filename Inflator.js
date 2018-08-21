@@ -5,7 +5,6 @@ import {Chord} from 'tonal';
 import Frase from './Frase.js';
 
 const
-  // tc = require('tonal-chord'),
   absoTimeIdx = 'absoTime',
   relativeTimeIdx = 'relativeTime';
 
@@ -34,29 +33,27 @@ class Inflator {
 
   makeDefaultBars (dat) {
     song = new Song(dat);
-    if (dat.disableArpeg) {
-      if (typeof (dat.disableArpeg) !== 'boolean') {
-        throw new Error('bool required');
-      }
-      song.set('disableArpeg', dat.disableArpeg);
+
+    if (typeof (song.get('disableArpeg')) !== 'boolean') {
+      throw new Error('bool required for "disableArpeg" property of song.');
     }
 
-    var chords = dat.chords,
-      phsCnt = 0,
-      phsTime = 0,
+    const chords = dat.chords,
       that = this;
 
-    _.forEach(dat.phases, (a, b, c) => {
+    let phsTime = 0;
+
+    _.each(dat.phases, (phase, index) => {
       const phaseSongDat = cloanPhaseSongDat(dat),
         strKey = app.songAttributesKey;
 
-      a[strKey] = phaseSongDat;
-      _._.verifySongOpts(a);
-      Object.freeze(a[strKey].chords);
-      var lengthOfAddedPhase = that.forEachPhase(a, b, phsTime, chords, phsCnt);
+      phase[strKey] = phaseSongDat;
 
-      phsCnt++;
-      phsTime += lengthOfAddedPhase;
+      _._.verifySongOpts(phase);
+      Object.freeze(phase[strKey].chords);
+      var phsDat = that.inflatePhase(phase, phsTime, chords);
+      song.addPhase(phsDat.frases, index, phsDat.phraseParams);
+      phsTime += phsDat.time;
     });
 
     return song;
@@ -67,14 +64,14 @@ class Inflator {
    * Manipulators are introduced elsewhere.
    *
    */
-  forEachPhase (phase, phaseIdxInSong, phaseTimeInSong, chords, phsCnt) {
+  inflatePhase (phase, phaseTimeInSong, chords) {
     const // cache a few properties for convenience
       measureChords = phase.composition,
       // phase.measureLength,
       demoBeatLength = phase.demoBeatLength, /* This beat length is for the in-browser demo only. */
       betweenFrases = phase.fraseDelay, /* default for how long between notes; should not be stored per note, really */
       dur = phase.fraseDuration, /* how long keys are held down. */
-      phaseReceptacle = [],
+      completedFrases = [],
       that = this;
 
     let elapsedMsrTime = 0,
@@ -113,7 +110,7 @@ class Inflator {
         timedToBar.config = chordDat;
         // at this point, the "bar" (timedToBar) has information on it about its
         // time within the phase, and also time about its own internal notes'
-        // timings. Those are combined at a later phase.
+        // timings. Those are combined at a later stage.
         // There are two ways that timing is finalized, relative time and
         // absolute time. Both are used because the player requires one and
         // the midi file writer requires the other.
@@ -132,21 +129,21 @@ class Inflator {
       withOffsets.forEach(
         (obj, idx) => {
           let frParams =
-                      {
-                        notes: obj.notes,
-                        // withOffsets gets reset per measureCntr
-                        index: idx + (measureChords.length * measureCntr),
-                        config: obj.config,
-                        phaseOptions: {
-                          imposedLength: phase.imposedFraseLength,
-                          duration: phase.fraseDuration,
-                          manipParams: phase.manipParams,
-                          disableArpeg: phase.disableArpeg
-                        }
-                      },
+            {
+              notes: obj.notes,
+              // withOffsets gets reset per measureCntr
+              index: idx + (measureChords.length * measureCntr),
+              config: obj.config,
+              phaseOptions: {
+                imposedLength: phase.imposedFraseLength,
+                duration: phase.fraseDuration,
+                manipParams: phase.manipParams,
+                disableArpeg: phase.disableArpeg
+              }
+            },
             fr = new Frase(frParams);
 
-          phaseReceptacle.push(fr);
+          completedFrases.push(fr);
         }
       );
 
@@ -161,8 +158,13 @@ class Inflator {
     }
 
     _._.verifySongOpts(phase);
-    song.addPhase(phaseReceptacle, phaseIdxInSong, phsCnt, phase);
-    return elapsedMsrTime;
+    return {
+      frases: completedFrases,
+      phraseParams: phase,
+      time: elapsedMsrTime
+    };
+    // song.addPhase(completedFrases, phaseIdxInSong, phase);
+    // return elapsedMsrTime;
   }
 
   chordDat (crd) {
@@ -389,8 +391,8 @@ function addMeasureOffsets (msr, timeToAdd) {
 
 /**
  * Add a frase ("bar") to the measure.
- * @param {array} receptacle Receptacle to get pushed into
- * @param {frase} measure    Frase to push in
+ * @param {Array} receptacle Receptacle to get pushed into
+ * @param {Frase} measure    Frase to push in
  *
  * @return {undefined}
  */
@@ -419,12 +421,6 @@ function showBarNotes (barData) {
       var nNt = obj.note;
     }
   );
-}
-
-function validateCountedTime (cntd, calcd) {
-  if (cntd !== calcd) {
-    throw new Error('Counted phase time does not match projected phase time');
-  }
 }
 
 function cloanPhaseSongDat (data1) {

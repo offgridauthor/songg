@@ -1,6 +1,7 @@
 
 var util = require('util'),
   Segment = require('./Segment.js'),
+  fs = require('fs'),
   phsStart,
   Phase = function (data, nm, order, opts) {
     Segment.apply(this, arguments);
@@ -222,14 +223,17 @@ var util = require('util'),
    * Run a manipulator on this phase
    */
     this.runManip = function (dat, nm) {
-      var Class = require('./Manipulators/' + nm + '.js'),
-        manip = new Class();
-      manip.phase = this;
-      // temporary hold to focus on snazzifier
-      if (nm !== 'Snazzifier') {
-        return;
-      }
+      console.log('phase.runManip', dat, nm);
+      const childClass = './Manipulators/' + nm + '.js',
+        parentClass = './Manipulators/PhaseManipulator.js',
+        childClassExists = fs.existsSync(childClass);
 
+      let className = childClassExists
+          ? childClass : parentClass,
+        Class = require(className),
+        manip = new Class(nm);
+
+      manip.phase = this;
       manip.go(dat);
     };
 
@@ -252,6 +256,7 @@ var util = require('util'),
             singleRangeMethod.argument, byName
           );
       });
+
       intersectingIndexes = matches[keys[0]];
 
       for (let i = 1; i < keys.length; i++) {
@@ -279,7 +284,7 @@ var util = require('util'),
         restOfIt = parseInt(rangeKey.slice(1)),
         retVar = {
           argument: restOfIt
-        }
+        };
 
       if (char1 === '<') {
         retVar.method = this.isLessThan;
@@ -303,11 +308,10 @@ var util = require('util'),
 
     this.isGreaterThan = (sought, fraseSubset) => {
       let arr;
-
       if (sought > fraseSubset.length) {
         arr = [];
       } else {
-        arr = _.range(sought + 1, fraseSubset.length);
+        arr = _.range(sought + 1, fraseSubset.length + 1);
       }
 
       const matches = new Set(arr);
@@ -320,8 +324,9 @@ var util = require('util'),
        ("somefrasesSubsetSubset") that fall at one of the indexes.
      */
     this.itemsAtIndexes = (frasesSubset, indexes) => {
+      const idxArr = Array.from(indexes);
       return _.map(
-        indexes,
+        idxArr,
         (indexVal) => {
           return frasesSubset[indexVal - 1];
         }
@@ -346,6 +351,10 @@ var util = require('util'),
     };
 
     this.fraseWhereNamed = function (nm) {
+      if (nm === 'ALL') {
+        return this.frases;
+      }
+
       let byName = _.filter(this.frases, function (obj) {
         let retBool = obj.config.name === nm;
         return retBool;

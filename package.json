@@ -6,7 +6,7 @@
     "scripts": {
         "test": "test",
         "lint": "node_modules/.bin/eslint",
-        "build": "./node_modules/.bin/babel . -d lib --ignore node_modules,lib",
+        "build": "./node_modules/.bin/babel . -d lib --ignore node_modules,'lib/','public/'",
         "mon": "nodemon --exec \"npm run-script build && node lib/index.js\" --ignore lib"
     },
     "repository": {

@@ -19,10 +19,9 @@ class FraseManipulator extends Manipulator {
   constructor () {
     super();
     this.name = 'FraseManipulator';
-    this.algos = [
-      '', ''
-    ];
+    this.algos = ['simple'];
   }
+
   tonalNote () {
     return tonalNote;
   }
@@ -36,21 +35,13 @@ class FraseManipulator extends Manipulator {
   }
 
   go () {
-    let algoNm,
-      wrappedNotes,
+    let wrappedNotes,
       rawNotes;
+
     this.validateAlgo(this.config.action);
-    algoNm = this.convertAlgoNm(this.config.action);
-    wrappedNotes = this[algoNm](this.notes, this.config);
+    wrappedNotes = this[this.config.action](this.notes, this.config);
     rawNotes = this.unwrapNotes(wrappedNotes);
     this.notes = rawNotes;
-  }
-
-  convertAlgoNm (algoNm) {
-    return {
-      'split-last': 'splitLast',
-      'add': 'add'
-    }[algoNm];
   }
 
   validateAlgo (nm) {
@@ -171,6 +162,7 @@ class FraseManipulator extends Manipulator {
       idx = scl.indexOf(ltr2);
 
     if (idx === -1) {
+      console.error('scale used: ' + scl);
       throw new Error('could not get step of ' + ltr + ' from above scale');
     }
 
@@ -221,6 +213,25 @@ class FraseManipulator extends Manipulator {
 
   get notes () {
     return this._notes;
+  }
+
+  getPrecedentScales () {
+    const dat = this.config,
+      genScale = dat.scale ? tonalScale.notes(dat.scale) : [],
+      defScale = tonalScale.notes('C major'),
+      precedentScales = [];
+
+    precedentScales.unshift({
+      notes: defScale,
+      name: 'C major'
+    });
+
+    precedentScales.unshift({
+      notes: genScale,
+      name: dat.scale || null
+    });
+
+    return precedentScales;
   }
 }
 
