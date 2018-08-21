@@ -3,9 +3,7 @@
  */
 
 import FraseManipulator from './FraseManipulator.js';
-
 class FraseNoteRepeater extends FraseManipulator {
-
   constructor () {
     super();
     this.name = 'NoteRepeater';
@@ -22,10 +20,6 @@ class FraseNoteRepeater extends FraseManipulator {
     const cloned = this.clone(rawNotes),
       nts = this.wrapNotes(cloned);
 
-    // _.each(nts, (nt) => {
-    //
-    // });
-
     _.each(this.config.data, (datum) => {
       let idx = datum.index - 1,
         howMany = datum.count,
@@ -38,7 +32,6 @@ class FraseNoteRepeater extends FraseManipulator {
       loopVar = 0;
       while (loopVar < howMany) {
         let nn = nts[idx].clone();
-        // console.log('nn', nn);
         nts.push(
           nn
         );

@@ -34,10 +34,6 @@ class Inflator {
   makeDefaultBars (dat) {
     song = new Song(dat);
 
-    if (typeof (song.get('disableArpeg')) !== 'boolean') {
-      throw new Error('bool required for "disableArpeg" property of song.');
-    }
-
     const chords = dat.chords,
       that = this;
 
@@ -137,8 +133,7 @@ class Inflator {
               phaseOptions: {
                 imposedLength: phase.imposedFraseLength,
                 duration: phase.fraseDuration,
-                manipParams: phase.manipParams,
-                disableArpeg: phase.disableArpeg
+                manipParams: phase.manipParams
               }
             },
             fr = new Frase(frParams);

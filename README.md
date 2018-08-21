@@ -10,6 +10,23 @@ The JSON song file contains the basic theoretical info about the song--key, scal
 
 A player is currently included ([MIDI.js](https://github.com/mudcube/MIDI.js/)) but is somewhat provisional; this version of the app is intended for musician-programmers who plan to export the Midi file for further refinement in another application. At a  later stage we might create an in-browser GUI.
 
-For development, you can use "npm run mon". However, for the very first deploy, you have to compile without nodemon. This is a known bug. The buggy behavior is that, the first time around, nodemon gets caught in an infinite loop and continuously recompiles.
+For development, you can use "npm run mon".
+### Manipulators
+Manipulators alter the song that is composed by the basic fields.
+
+Manipulators can be defined at the level of the song (to manipulate all the frases in a phase or in several phases). From the song-based definition like this, the user can specify certain phases, but within the specified phases, all of the frases will be altered.
+
+Manipulators can be defined at the level of the Phase in order to manipulate a specified subset of frases (the subset meeting certain range requirements that the user defines).
+
+The Manipulators include
+- Arpeggiator - Places notes in arpeggiation
+- NoteRepeater - Causes nth note (for now, only from a frase's chord) to be repeated at yth time
+- RootChanger - Rotates the note order of a frase by pushing the first note to the end of the ordering, and raises that note's octave by n octaves. For example (virtual example) [C4, E4, G4] becomes [E4, G4, C5]
+- Snazzifier - Beginning from the last note, it splits that note up within its time frame and changes the pitches of the pieces that are left according to the scale or chord or custom scale (as specified).
+
+
+
+I will write about how to use each soon and add others.
+Also, I plan to add tests soon
 
 songg is © r. david roe 2016.

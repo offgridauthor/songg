@@ -4,7 +4,7 @@
     "Arpeggiator": [
       {
         "phases": "aphrodite",
-        "data": [3,2,1,0]
+        "data": [60,30,0,90]
       }
     ]
   },
@@ -111,6 +111,19 @@
       }
   ],
   "phases": {
+    "penelope": {
+        "measureCount": 1,
+        "composition": [
+          "G", "G",
+          "F", "F",
+          "Em", "Em",
+          "Dm", "Dm"
+        ],
+        "demoBeatLength": 0.8,
+        "fraseDuration": 64,
+        "imposedFraseLength": 256,
+        "fraseDel": 0
+      },
       "aphrodite": {
           "measureCount": 1,
           "remark": "consider E-flat-dim (Ebo), D, Ddim, Cdim ",
@@ -152,11 +165,11 @@
                     "timeUnit": "64",
                     "notes": [
                         { "note": "C4",
-                          "time": "1"
+                          "time": 1
                         },
                         {
                           "note": "Db4",
-                          "time": "2"
+                          "time": 2
                         }
                     ]
                   }
@@ -173,7 +186,7 @@
                     "data": [
                       {
                         "direction": "low->high",
-                        "cuts": 3,
+                        "cuts": 1,
                         "scale": ["D", "E", "F", "G", "A", "B"],
                         "directives" : {
                           "limitOctave": [0, 0]
@@ -192,12 +205,8 @@
                 ],
                 "Arpeggiator": [
                   {
-                    "chord": "Dm",
-                    "data": [0, 64, 128, 128, 184]
-                  },
-                  {
                     "chord": "F",
-                    "data": [184, 128,64,0]
+                    "data": [0, 64, 128, 128, 184]
                   }
                 ]
               }

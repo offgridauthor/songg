@@ -1,6 +1,4 @@
-// import tonalNote from 'tonal-note';
 const tonalNote = require('tonal-note');
-
 
 /**
  * Constructs instance of object with class Note
@@ -37,6 +35,20 @@ class Note {
     this.oct = this.oct + 1;
   }
 
+  getValidTokens (lwo) {
+    let tokenized = this.getTokens(lwo);
+    if (tokenized[0] === '' || tokenized[2] === '') {
+      throwErr();
+    }
+    return tokenized;
+    function throwErr () {
+      throw new Error('Invalid note Name proposed or created from oct: "' + lwo + '"');
+    }
+  };
+
+  getTokens (letterPossibleOctave) {
+    return tonalNote.tokenize(letterPossibleOctave);
+  };
 
   /**
    * Set the letter of this note.
@@ -48,14 +60,14 @@ class Note {
     let tokenized = this.getTokens(letterWithOct);
 
     this.ntAttrs.letter = tokenized[0] + tokenized[1];
-
-    if (tokenized[2] === "") {
+    if (tokenized[2] === '') {
       if (this.oct) { // if already an octave is there...
         // do compilation of other assets.
         this.compile();
       }
       // otherwise, we don't compile ; there is no default oct.
-    } else { //set the new octave.
+    } else {
+      // set the new octave.
       // will set off triggering the compilation as well.
       this.ntAttrs.oct = tokenized[2];
       this.compile();
@@ -67,7 +79,7 @@ class Note {
   }
 
   set ntAttrs (obj) {
-    requireType(obj, 'Object');
+    _._.requireType(obj, 'Object');
     this._ntAttrs = obj;
   }
 
@@ -76,14 +88,13 @@ class Note {
   }
 
   set duration (dur) {
-    requireType(dur, "Number");
+    _._.requireType(dur, 'Number');
     this.ntAttrs.duration = dur;
   }
 
   get duration () {
     return this.ntAttrs.duration;
   }
-
 
   /**
    * These getter and setter have aliases.
@@ -95,9 +106,8 @@ class Note {
     if (!this.letter) {
       throw new Error('It is disallowed to set octave before any letter is set.');
     }
-    requireType(oct, 'Integer');
-    let letter = this.ntAttrs.letter,
-      newAttrs;
+    _._.requireType(oct, 'Integer');
+    let letter = this.ntAttrs.letter;
 
     this.getValidTokens(letter + oct);
     this.ntAttrs.oct = oct;
@@ -112,65 +122,20 @@ class Note {
   }
 
   set octave (newOct) {
-    return this.oct = newOct;
+    this.oct = newOct;
   }
 
   getNoteAttribs () {
     return JSON.parse(JSON.stringify(this.ntAttrs));
   }
 
-  set relativeTime (num)
-  {
-    requireType(num, 'Number');
+  set relativeTime (num) {
+    _._.requireType(num, 'Number');
     this.ntAttrs.relativeTime = num;
   }
 
-  get relativeTime ()
-  {
+  get relativeTime () {
     return this.ntAttrs.relativeTime;
-  }
-}
-
-Note.prototype.getValidTokens = function (lwo) {
-  let tokenized = this.getTokens(lwo);
-  if (tokenized[0] === '' || tokenized[2] === '') {
-    throwErr();
-  }
-  return tokenized;
-  function throwErr () {
-    throw new Error('Invalid note Name proposed or created from oct: "' + lwo + '"');
-  }
-};
-
-Note.prototype.getTokens = function (letterPossibleOctave) {
-  return tonalNote.tokenize(letterPossibleOctave);
-};
-
-function requireType (arg, type) {
-  let method = 'is' + type,
-    doThrow = false,
-    nummed;
-
-  if (!_[method] && type !== 'Integer') {
-    throw new Error('Type method ' + method + ' does not enjoy a presence on the lodash sticky side.');
-  }
-
-  if (type === 'Integer') {
-    nummed = parseInt(arg);
-    if ('' + nummed !== arg + '') {
-      doThrow = true;
-    }
-
-    if (Number.isInteger(nummed) === false) {
-      doThrow = true;
-    }
-  } else if (!_[method](arg)) {
-    console.error(arg);
-    doThrow = true;
-  }
-
-  if (doThrow) {
-    throw new Error('var "' + arg + '" is not ' + type + ', which is the required type. ');
   }
 }
 

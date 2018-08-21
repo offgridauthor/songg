@@ -1,6 +1,5 @@
 /**
  * Extendable class for altering phases of Songs
- *
  */
 import Manipulator from './Manipulator.js';
 import fs from 'fs';
@@ -113,11 +112,9 @@ class PhaseManipulator extends Manipulator {
   getFraseManipInstance (nm) {
     const ManipClass = require('./' + nm + '.js'),
       manipInstance = new ManipClass();
-
     if (!manipInstance || !manipInstance.setSongData) {
       throw new Error('Frase Manipulator "' + nm + '" does not seem to exist or is malforned.');
     }
-
     return manipInstance;
   }
 
@@ -140,13 +137,10 @@ class PhaseManipulator extends Manipulator {
     // First parse the query that indicates a range of frases to which
     // to apply the specified method.
     let query, fr;
-
     if (crdNm === undefined) {
       crdNm = 'ALL';
     }
-
     if (crdQuery === undefined) {
-      // match all
       crdQuery = { range: ['>0'] };
     }
 

@@ -38,7 +38,6 @@ app.get('/', (request, response) => {
 
 // Data route , which supplies the song data to the client's ajax call
 app.get('/songSystem', (request, response) => {
-
   // The inflator sort of breathes initial life into the raw song data.
   const song = (new Inflator()).inflate(
     JSON.parse(dat)
@@ -48,7 +47,7 @@ app.get('/songSystem', (request, response) => {
     savedFile,
     songData;
 
-  song.prepareSave();
+  song.compile();
   song.freezePhases();
   song.runHooks();
 
