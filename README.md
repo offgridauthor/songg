@@ -36,6 +36,4 @@ The Manipulators include
 
 
 I will write about how to use each soon and add others.
-Also, I plan to add tests soon
-
-songg is © r. david roe 2016 - 18.
+Also, I plan to add tests soon.
