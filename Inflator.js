@@ -23,9 +23,9 @@ class Inflator {
    * Inflate song according to blueprint data in the "phases" object
    * of the song's json.
    *
-   * @param  {object} dat POJO taken as the entirety of the song's json file
+   * @param  {Object} dat POJO taken as the entirety of the song's json file
    *
-   * @return {object} Inflated song
+   * @return {Object} Inflated song
    */
   inflate (songDat) {
     return this.makeDefaultBars(songDat);
@@ -206,8 +206,8 @@ class Inflator {
    * Given an array of note names and arpegLib from song's json, makes midi
    * data in a format consumable by the player, MIDI.js.
    *
-   * @param  {array} nts List of note names
-   * @param  {object} params POJO; structure example:
+   * @param  {Array} nts List of note names
+   * @param  {Object} params POJO; structure example:
     *    {
     *      pl: { //object from arpeg lib
           "offset": 0,
@@ -215,7 +215,7 @@ class Inflator {
     *    }
     *
     * }
-    * @return {object}
+    * @return {Object}
    */
   timelessNote (ntNm, prs) {
     var pc = prs.parse(ntNm);
@@ -231,10 +231,10 @@ class Inflator {
    * later to be used as the base for adding time to individual
    * notes within the bar.
    *
-   * @param {array} bar        THe bar of notes
-   * @param {number} absoTime   Bar's timed placement within the phase
-   * @param {number} tweenNotes Time between notes to be used in writing midi, Later
-   * @param {number} midiDur    How long the key(s) is/are pressed, so to speak; length of note or notes
+   * @param {Array}  bar        THe bar of notes
+   * @param {Number} absoTime   Bar's timed placement within the phase
+   * @param {Number} tweenNotes Time between notes to be used in writing midi, Later
+   * @param {Number} midiDur    How long the key(s) is/are pressed, so to speak; length of note or notes
    */
   addBarOffsets (bar, absoTime, tweenNotes, midiDur) {
     var barCopied = copyBar(bar),
@@ -270,7 +270,6 @@ class Inflator {
 
     return rawChord;
   }
-
 }
 // use tonal.js to fetch a midi-composed chord
 
@@ -325,11 +324,10 @@ function copyBar (bar1) {
 /**
  * Add offset property to each measure (which will be used later to
  * plase the frase in time among other frases.
- * @param {array} msr Measure of bars; each bar = array with "notes" as
- *                    primary property.
- * @param {timeToAdd} timeToAdd Time to add to the pre-existing time
+ * @param {Array} msr         Measure of bars; each bar = array with "notes" as
+ *                            primary property.
+ * @param {Number} timeToAdd  Time to add to the pre-existing time
  *
- * addOffsets(bar, phaseTime, measure, strumIdx, demoBeatLength);
  */
 function addMeasureOffsets (msr, timeToAdd) {
   var copied = copyMeasure(msr),
@@ -342,14 +340,14 @@ function addMeasureOffsets (msr, timeToAdd) {
   /**
    * Add specified time to each note in the specified measure
    *
-   * @param {Object} msr_ The Measure
+   * @param {Object} msr The Measure
    * @param {Number} mTm  Time to add to each note in the measure
    *
-   * @return {undefined} newMsr_
+   * @return {Array} newMsr
    */
-  function addMeasureTime (msr_, mTm) {
-    var newMsr_ = [];
-    msr_.forEach(
+  function addMeasureTime (msrFrases, mTm) {
+    var newMsr = [];
+    msrFrases.forEach(
       (barItm) => {
         var newBar = copyBarObj(barItm);
         newBar.notes = [];
@@ -360,10 +358,10 @@ function addMeasureOffsets (msr, timeToAdd) {
             newBar.notes.push(offsettable);
           }
         );
-        newMsr_.push(newBar);
+        newMsr.push(newBar);
       }
     );
-    return newMsr_;
+    return newMsr;
   }
 
   /**
@@ -395,6 +393,9 @@ function addBarToMeasure (receptacle, frase) {
   receptacle.push(frase);
 }
 
+/**
+ * Development util to output notes of a specified phase.
+ */
 function showPhaseNotes (phsData) {
   var n = 0;
   phsData.forEach(
@@ -409,15 +410,20 @@ function showPhaseNotes (phsData) {
   );
 }
 
-function showBarNotes (barData) {
-  var n = 0;
+/**
+ * Development util to output notes to console of a specified frase.
+ */
+function showFraseNotes (barData) {
   barData.forEach(
     (obj) => {
-      var nNt = obj.note;
+      console.log(obj.note);
     }
   );
 }
 
+/**
+  Deep clone data, erasing clone's copy to proper scope.
+ */
 function cloanPhaseSongDat (data1) {
   var data2 = JSON.parse(JSON.stringify(data1));
   delete data2.phases;

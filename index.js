@@ -9,8 +9,9 @@ const express = require('express'),
   path = require('path');
 _._ = utilExt;
 
-/**     As of this note, run the server with "npm run mon", which accesses
-        a command defined in package.json
+/**
+  As of this note, run the server with "npm run mon", which accesses
+  a command defined in package.json
 
   The code is being converted to ES6/7 via Babel, and the "mon"
   script includes that directive.

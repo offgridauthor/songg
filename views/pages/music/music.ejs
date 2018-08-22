@@ -1,199 +1,247 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <% var dir = ''; %>
+  <% var dir = '/libs/'; %>
+  <title>developer backend for songg </title>
 	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-	<script src="<%=dir;%>/music-libs/Base64.js" type="text/javascript"></script>
-	<script src="<%=dir;%>/music-libs/Base64binary.js" type="text/javascript"></script>
-	<script src="<%=dir;%>/music-libs/WebAudioAPI.js" type="text/javascript"></script>
-	<script src="<%=dir;%>/music-libs/audioDetect.js" type="text/javascript"></script>
-	<script src="<%=dir;%>/music-libs/gm.js" type="text/javascript"></script>
-	<script src="<%=dir;%>/music-libs/loader.js" type="text/javascript"></script>
-	<script src="<%=dir;%>/music-libs/plugin.audiotag.js" type="text/javascript"></script>
-	<script src="<%=dir;%>/music-libs/plugin.webaudio.js" type="text/javascript"></script>
-	<script src="<%=dir;%>/music-libs/plugin.webmidi.js" type="text/javascript"></script>
-	<script src="<%=dir;%>/music-libs/dom_request_xhr.js" type="text/javascript"></script>
-	<script src="<%=dir;%>/music-libs/dom_request_script.js" type="text/javascript"></script>
-	<script src="<%=dir;%>/music-libs/midi-export.js" type="text/javascript"></script>
-  <script src="<%=dir;%>/libs/jquery-built.js"></script>
+  <script src="<%=dir;%>Tone.js" type="text/javascript"></script>
+  <script src="<%=dir;%>soundfont-player.min.js" type="text/javascript"></script>
+  <script
+    src="https://code.jquery.com/jquery-2.2.4.js"
+    integrity="sha256-iT6Q9iMJYuQiMWNd9lDyBUStIq/8PuOW33aOqmvFpqI="
+    crossorigin="anonymous"></script>
 </head>
 <script>
-// Band-aid line to see which version of the song
-// the user (always me, David, at this point) wants
-// to retreive.
-var whichSong = window.location.href.indexOf('play2') == -1 ? 'firstsong' : 'songSystem',
-    sngCntr = 0,
-    defaultDelay = .5;
+// This is just a page for developers to make sure that the
+// sound is playing correctly in the browser for quick demo purposes.
+//
+// No strong organization here yet;  we're still deciding on
+// what architecture will best serve the interface.
+// The end-user interface will be much more significant and useful than this,
+// probably using React JS or Vue or Angular.
+//
+// Un-remark 'sf' for soundfont (https://github.com/danigb/soundfont-player)
+// Instead, un-remark 'wa' for a webaudio instrument (https://tonejs.github.io/)
+//
+// Safari and FireFox do better sometimes than Chrome with the Tonejs system.
+// Both do very well, always, with the soundfont system.
+//
+// Note: "stop" is not yet enabled for the synthesizer (soundfont-free) version
+// simply becaues implementation is more involved. Button gets purposefully
+// disabled with tone.js in this codebase for now.
 
-window.onload = function () {
-    //Initialize the MIDI playing capability to give a rough idea
-    //of the song as manipulated by server-side scripts.
-	MIDI.loadPlugin(
-    {
-        /**
-         * Format of the specified soundfont voice
-         * @type {String}
-         */
-        audioFormat: 'mp3',
-        /**
-         * URL for soundfont voices
-         * @type {String}
-         */
-		soundfontUrl: "./soundfont/",
-        /**
-         * Name of soundfont voice to use
-         * @type {String}
-         */
-		instrument: "acoustic_grand_piano",
-        /**
-         * Function to trigger on progression of song
-         *
-         * @param  {object} state    State info
-         * @param  {string} progress Progress info
-         *
-         * @return {undefined}
-         */
-		onprogress: function(state, progress) {
-            //console.log('progress');
-		},
-        /**
-         * Function to run after MIDI player plugin is loaded.
-         *
-         * @return {undefined}
-         */
-		onsuccess: function() {
-            //Fetch scripted song data from the server
-            $.get(
-                whichSong,
-                function(dat)
-                {
-                    playOrDL(dat, 'dl');
-                }
-            );
+window.instrumentation = 'sf';
+// window.instrumentation = 'wa'; //disables "stop" button
 
-            /**
-             * Play the song using MIDI player
-             *
-             * @param  {string} data JSON string of song data
-             *
-             * @return {undefined}
-             */
-            function playOrDL(data, playOrDL)
-            {
-                var parsed = '',
-                    parsed = JSON.parse(data),
-                    chords = parsed.song,
-                    outputLink = parsed.midiLink,
-                    link = '<div><a href="' + parsed.midiLink + '">' + outputLink + '</a></div>',
-                    ticker = 0;
-
-                    $('body').append(link);
-                    chords.forEach(
-                        function(itm, idx){
-                            ticker += playChord(itm, ticker);
-                        }
-                    );
-            }
-
-            /**
-             * Use MIDI player to play a small array of notes
-             *
-             * @param  {array} crd  Small array of notes
-             *
-             * @return {undefined}
-             */
-            function playChord (crd, ticker)
-            {
-                var isFrst = 1,
-                    tickNotes = 0;
-
-                $.each(
-                    crd.chord,
-                    function(ntIdx, note){
-                        var derivedNoteIdx = ticker + tickNotes;
-                        playNote(note, derivedNoteIdx);
-                        tickNotes ++;
-                    }
-                );
-                return tickNotes;
-            }
-            /**
-             * Use MIDI player to play a single note.
-             *
-             * @param  {} dl [description]
-             * @param  {[type]} nt [description]
-             * @return {[type]}    [description]
-             */
-            function playNote(nt, noteInSongIndex)
-            {
-
-                var
-                    note = nt.note.midi,    // the MIDI note
-                    delay = (nt.note.delay || defaultDelay) * noteInSongIndex,   // midi delay (abso time not used)
-                    otherDelay = nt.note.absoTime,
-                    vol = nt.note.vol || 127,
-                    velocity = nt.note.velocity || 127;         // how hard the note hits (required; todo: move to server)
-
-                // play the note
-                MIDI.setVolume(0, vol);
-                MIDI.noteOn(0, note, velocity, otherDelay);
-                MIDI.noteOff(0, note, otherDelay + .2);
-
-            }
-	    }
-    });
-
-    /**
-     * Stop all notes playing on the MIDI player
-     *
-     * @param  {[type]} ev [description]
-     * @return {[type]}    [description]
-     */
-    var stopPlay = function(ev)
-    {
-        MIDI.stopAllNotes();
-
-    }
-
-    $('body').find('.stop-button')
-    .on('click', stopPlay);
-};
 /**
- * Create a string of binary data that will be a
- * download-ready MIDI file
- *
- * @param  {array}      sng Writeable-notation musical notes array
- *
- * @return {undefined}      Function triggers download in client
+ * Main function; play demo song and write a link to download .midi file.
  */
-var write = function(sng)
-{
-    var noteEventsFile = [];
-    //Each item in "sng" is a single note
-    sng.forEach(function(noteObj) {
+window.onload = () => {
+    globalStartTime = new Number(Tone.now().toFixed(3)) + 3;
+    jQuery.get(
+        'songSystem',
+        function(dat) {
+            const parsed = JSON.parse(dat),
+              link = parsed.midiLink;
 
-        var pushEvts = [];
-        noteEventsFile.push(
-            MidiEvent.noteOn(noteTable[noteObj.note], 10)
-        );
-        noteEventsFile.push(
-            MidiEvent.noteOff(noteTable[noteObj.note], noteObj.duration)
-        );
+            songLink(link);
+            playNotes(parsed.song);
+        }
+    );
+};
+
+/**
+ * Write to page the songlink for downloading the song.
+ */
+function songLink (link) {
+  const linkTxt =
+    '<div><a href="' + link + '">'
+    + link
+    + '</a></div>';
+  $('.dl-link').append(linkTxt);
+}
+
+/**
+ * Play notes in one of two ways according to
+ * global var window.instrumentation.
+ */
+function playNotes(notes) {
+
+  let $stopper =
+    $('.stop-button');
+
+  writeNotes(notes);
+
+  if (instrumentation === 'sf') {
+    initiateAndStartPlayerInterface(notes, $stopper);
+
+  } else if (instrumentation === 'wa') {
+      $stopper.attr('disabled', 'disabled');
+      playNotesWithTonalSynth(notes);
+  }
+}
+
+/**
+ * Initiate the player interface; soundfont has been chosen, so
+ * activate the stop button and play the notes.
+ */
+function initiateAndStartPlayerInterface (notes, $stopper) {
+
+  // It takes time to get the instrument
+  // set up; use propise for loading-of-
+  // files-type wait time. Do this async.
+  let prom = getInstrumentPromise();
+  // With the instru ready go, we can...
+  prom.then((instrumentation) => {
+    console.log(instrumentation);
+    // link it to the stop button
+    activateStopper($stopper, instrumentation.instrument);
+    // and use it to play notes
+    playNotesWithInstrument(instrumentation.instrument, notes, instrumentation.ac);
+  });
+}
+
+/**
+ * Having obtained the instrument (soundfont) and Audio Context,
+ * use those to play the notes.
+ */
+function playNotesWithInstrument (instr, nts, ac) {
+    nts.forEach((nt, idx) => {
+      instr.schedule(ac.currentTime + nt[2], [{ note: nt[0], duration: nt[1] }]);
     });
+}
 
-    var writeTrack = new MidiTrack({ events: noteEventsFile  }),
-        writeSong  = MidiWriter({ tracks: [writeTrack] });
+/**
+ * Get a promise whose callback will have available a soundfont-based
+ * instrument.
+ */
+function getInstrumentPromise () {
+  let dfd = $.Deferred();
+  const ac = new AudioContext();
+  Soundfont.instrument(ac, 'acoustic_grand_piano')
+  .then((piano) => {
+    dfd.resolve(
+      {instrument: piano, ac: ac}
+    );
+  });
+  return dfd.promise();
+}
 
-    writeSong.save();
+/**
+ * Hook up the instrument-stopper (for soundfont only) to the button.
+ *
+ */
+function activateStopper ($stopper, instr) {
+  $stopper.on('click', (ev) => {
+    instr.stop();
+  });
+}
+
+
+// Synthesizer method functions - - - - - - - - - - - - -
+/**
+ * Get a synthesizer (https://tonejs.github.io/)
+ * Several synth settings are provided for experimentation.
+ * (I've found "saw" and "triangle" to be the most stable.
+ * Results vary between browsers. )
+ */
+function getSynth () {
+
+  const synthesizers = {
+    saw: {
+        oscillator : {
+        	type : 'fmsquare',
+          modulationType : 'sawtooth',
+          modulationIndex : 3,
+          harmonicity: 3.4
+        },
+        envelope : {
+        	attack : 0.001,
+          decay : 0.1,
+          sustain: 0.1,
+          release: 0.1
+        }
+    },
+    pulse: {
+      oscillator : {
+        type : "pulse",
+        modulationFrequency : 1
+      },
+      envelope : {
+        attack : 0.02,
+        decay : 0.0,
+        sustain : 0.4,
+        release : 1.5,
+      }
+    },
+    triangle: {
+      oscillator  : {
+        type  : 'triangle'
+      },
+        envelope  : {
+        attack  : 0.005 ,
+        decay  : 0.1 ,
+        sustain  : 0.3 ,
+        release  : 1
+      }
+    }
+  },
+  synth =
+    new Tone.Synth(synthesizers.saw)
+    .toMaster();
+
+  return synth;
+}
+
+/**
+ * Fetch synth and play the notes
+ */
+function playNotesWithTonalSynth (notes) {
+  const synth = getSynth();
+  notes.forEach(
+      function(itm, idx) {
+        playNoteWebAudio(itm, synth);
+      }
+  );
+}
+
+/**
+ *  Play single note
+ */
+function playNoteWebAudio (nt, synth) {
+  synth.triggerAttackRelease(...nt);
+}
+
+// Note-writing methods - - - - -- - - - - - - - - - - -
+/**
+ * Show in document each note that is about to be played.
+ */
+function writeNotes(notes) {
+  notes.forEach(writeTextNode);
+}
+/**
+ * Write a single note. (Notice a "note-list" ul element is required to
+ * be on the page preloaded.)
+ */
+function writeTextNode(itm) {
+  var node = document.createElement("li"),
+      textnode = document.createTextNode(itm);
+
+  node.appendChild(textnode);
+  document.getElementById("note-list").appendChild(node);
 }
 
 </script>
 <body>
 <div class="container">
+    <span><i><b>This is a dev-only stub for establishing a browser-based demo player for the song to be downloaded.</b></i></span>
     <div class="music">
-      Playing script-manipulated song
-      <button class="stop-button"></button>
+      <br><br><br><br><br><br><br><br>
+      <div class="dl-link"></div>
+      <div>Playing demo. . . </div>
+      <button class="stop-button"> stop </button>
     </div>
+    <ul id="note-list"></ul>
 </div>
 </body>
 </html>

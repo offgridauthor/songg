@@ -2,7 +2,6 @@
   * Model class for raw song data
   *
 * */
-
 import Phase from './Phase.js';
 import fs from 'fs';
 import Midi from 'jsmidgen';
@@ -13,7 +12,6 @@ class Song {
    *
    * @type {Object}
    */
-
   constructor (initProps) {
     this.initialize(initProps);
   }
@@ -28,12 +26,13 @@ class Song {
   /**
    * Set up the instance
    *
-   * @param  {object} attribs Constructor attributes
-   * @param  {object} opts    Options (arguments, basically) for this function
+   * @param  {Object} attribs Constructor attributes
+   * @param  {Object} opts    Options (arguments, basically) for this function
    *
    * @return void
    */
   initialize (attribs) {
+    this.secondsDivisor = 256;
     this.hist = [];
     this.phases = {};
     this.writeableEvents = null;
@@ -48,7 +47,7 @@ class Song {
   /**
    * Return a phase by name
    *
-   * @param  {string} pn  phase name
+   * @param  {String} pn  phase name
    *
    * @return object/false Requested phrase
    */
@@ -106,9 +105,9 @@ class Song {
   /**
    * Add a phase to the song
    *
-   * @param  {object} phase  Phase data
-   * @param  {string} nm     key name for phase
-   * @param  {number} idx    index at which to assign phase
+   * @param  {Object} phase  Phase data
+   * @param  {String} nm     key name for phase
+   * @param  {Number} idx    index at which to assign phase
    *
    * @return {undefined}
    */
@@ -132,15 +131,20 @@ class Song {
    * @return {Array} bars of the song
    */
   readBars () {
-    var retVar = [],
-      forEachPhase = function (phs) {
-        retVar = retVar.concat(phs.referToFrases());
-      };
+    return this.filterBrowserNotes(this.writeableEvents);
+  }
 
-    _.each(this.phases, forEachPhase);
-    _.each(retVar, this.formatOutputBar);
+  filterBrowserNotes (nots) {
+    const filtered = _.where(nots, {
+      'type': 'on'
+    }).map((nt) => {
+      return [
+        nt.note, nt.duration / this.secondsDivisor,
+        (nt.absoTime / this.secondsDivisor) + 3
+      ];
+    });
 
-    return retVar;
+    return filtered;
   }
 
   /**
@@ -180,7 +184,7 @@ class Song {
   /**
    * Chain one phase to the next; finalize timing.
    *
-   * @return {object} Phase instance
+   * @return {Object} Phase instance
    */
   absolutizePhases () {
     let prevPhase = null;
@@ -208,9 +212,9 @@ class Song {
    * Utility-type function for formatting a bar for consumption
    * by the client
    *
-   * @param  {array} bar  Array of notes
+   * @param  {Array} bar  Array of notes
    *
-   * @return {object}     object wrapped how the client expects it
+   * @return {Object}     object wrapped how the client expects it
    */
   formatOutputBar (bar) {
     bar = { chord: bar };
@@ -219,9 +223,9 @@ class Song {
   /**
    * Get file model for storing notes
    *
-   * @param  {string} name Name of the file
+   * @param  {String} name Name of the file
    *
-   * @return {object}      Model instance
+   * @return {Object}      Model instance
    */
   getFileModel (name) {
     var outDir = this.get('outputDir'),
@@ -231,7 +235,6 @@ class Song {
         name: './' + outDir + '/' + name,
         ext: 'midi'
       };
-    console.log('model.track:', model.track);
     model.file.addTrack(model.track);
 
     return model;
@@ -239,7 +242,7 @@ class Song {
   /**
    * Get events that can be easily, accurately recorded to file
    *
-   * @return {array}  writeable (yet still relatively timed)
+   * @return {Array}  writeable (yet still relatively timed)
                       events for absolutizing
    */
   _getWriteableEvents () {
@@ -283,7 +286,8 @@ class Song {
             type: 'on',
             channel: 0,
             note: renderableNote,
-            absoTime: startTick
+            absoTime: startTick,
+            duration: duration
           };
 
           eventsToWrite.push(onEvt);
@@ -330,6 +334,7 @@ class Song {
         evt.midgTime = evt.absoTime - priorTime;
       }
     });
+
     _.each(
       eventsToWrite, function (evt, idx) {
         if (['on', 'off'].indexOf(evt.type) === -1) {
@@ -340,61 +345,6 @@ class Song {
         that[fnName](model, 0, evt.note, Math.abs(evt.midgTime));
       }
     );
-  }
-
-  /**
-   * Write notes to the midi track to be saved as a midi file.
-   *
-   * To make a chord with midgen, the first note of the chord (arbitrary)
-   * should carry time info and others have theirs omitted in the bottommost
-   * function call to the library.
-   *
-   * Another way of saying that: add a note's beginning point by using
-   * the *noteOn functions. That note also opens up a chord; it begins
-   * the chord. Subsequent notes will sound simultaneously until they
-   * all end from your closing the chord. That happens when you close
-   * the first note.
-   *
-   * Now, there is an addChord; but I need to update jsmidgen to get that.
-   *
-   * @see https://github.com/dingram/jsmidgen
-   */
-  midgenSaveWithoutArpeg (model, chord) {
-    var that = this,
-      isFirstPhase = 1,
-      isFirst;
-
-    _.each(chord.notes, function (noteItm) {
-      var nDat = noteItm.note,
-        renderableNote = that.renderableNote(nDat),
-
-        // relativeTime is needed for note on
-        delay = nDat['relativeTime'];
-
-      if (isFirstPhase) {
-        that.midgNoteOn(model, 0, renderableNote, delay);
-      } else {
-        that.midgNoteOn(model, 0, renderableNote, delay);
-      }
-      isFirstPhase = 0;
-    });
-
-    isFirst = 1;
-    _.each(chord, function (noteCont) {
-      var noteItm = noteCont.note,
-        renderableNote = that.renderableNote(noteItm),
-
-        // "duration" key needed for note off
-        duration = noteItm.duration;
-      if (isFirst) {
-        // duration is added as what is technically the delay
-        // since the prev. event in the channel.
-        that.midgNoteOff(model, 0, renderableNote, duration);
-      } else {
-        that.midgNoteOff(model, 0, renderableNote);
-      }
-      isFirst = 0;
-    });
   }
 
   /**
@@ -422,6 +372,7 @@ class Song {
     }
     return model.track.addNoteOff(channel, pitch);
   }
+
   freezePhases () {
     this.forEachPhase(Object.freeze);
   }
@@ -449,9 +400,7 @@ class Song {
 
   songHooks () {
     const that = this;
-    console.log('songHooks', this.get('manipParams'));
     _.each(this.get('manipParams'), (manipDataList, manipName) => {
-      console.log('hello - ', manipName, manipDataList);
       that.runManipOnPhases(manipName, manipDataList);
     });
   }
@@ -478,7 +427,6 @@ class Song {
         // Run this one Arpeggiator.data config element against its listed
         // phases.
         _.each(phaseInstances, (phsInst) => {
-          console.log('running phase.runManip...', [manipDatum], manipName);
           phsInst.runManip([manipDatum], manipName);
         });
       }
@@ -495,10 +443,11 @@ class Song {
       model.ext = 'midi';
     }
 
-    var fileName = model.name + '.' + model.ext,
+    let fileName = model.name + '.' + model.ext,
       fileExists = true,
       iterator = 0,
-      suffix = '';
+      suffix = '',
+      outFile;
 
     while (fileExists) {
       if (iterator > 0) {
@@ -518,7 +467,7 @@ class Song {
       iterator++;
     }
 
-    var outFile = model.name + '.' + model.ext;
+    outFile = model.name + '.' + model.ext;
 
     fs.writeFileSync(outFile, model.file.toBytes(), 'binary');
     this.set('outputLink', (outFile.split('./public')[1]));

@@ -1,6 +1,10 @@
 (This code is in the process of being converted to use ES6 and ES7.)
 
-The app "Songg" (working title) is a music composition library. Primary input is in the form of chord names, note names, keys, and tonal increments in traditional music theory. In the current (developmental) version, the medium of input is a json file. It's a notion far more semantic than MIDI. The data format is intended to be creatively useful for musicians who also know how to code. Some JSON key names correspond to code classes; and in a fashion meant to be complimentary to the data, the code is extensible.
+#### Music composition via scripting
+
+The codebase "Songg" (working title) is a music composition library. Primary input is in the form of chord names, note names, keys, and tonal increments in traditional music theory. Focus is overwhelmingly on the backend, so far.  
+
+In the current (developmental) version, the medium of input is a json file. It's a notion far more semantic than MIDI. The data format is intended to be creatively useful for musicians who also know how to code. Some JSON key names correspond to code classes; and in a fashion meant to be complimentary to the data, the code is extensible.
 
 This makes use of [tonal.js](https://github.com/danigb/tonal), a music theory library for NodeJS. An example of something tonal.js allows you to do is to generate chords and scales from musical terminology such as "C major." The other major feature of Songg is that it allows you to export midi tracks. These you can drag and drop into other music editing applications such as Garage Band.
 
@@ -8,9 +12,14 @@ To alter the song, directly manipulate the JSON of a song (for example, "Intro.j
 
 The JSON song file contains the basic theoretical info about the song--key, scale, ocatves of bars--and it is up to your scripting to alter the song as you like. The Inflator and the Manipulators contain the code that alter the notes in terms of musical composition.
 
-A player is currently included ([MIDI.js](https://github.com/mudcube/MIDI.js/)) but is somewhat provisional; this version of the app is intended for musician-programmers who plan to export the Midi file for further refinement in another application. At a  later stage we might create an in-browser GUI.
+
+#### Dev backend in browser
+The client side is barely present, and really just intended as a stub for future development. I am still deciding between a few different architectures; the client-side is only a single file, but should be pretty readable, as it's short and clear.
+
+An in-browser player is currently included. In fact, two different methods are provided, between which the dev can switch with a simple code change. In music.ejs, you will see remarks as to how to effect this change. Experiment between ([Tone.js](https://github.com/Tonejs/Tone.js)) and ([soundfont-player](https://github.com/danigb/soundfont-player)).
 
 For development, you can use "npm run mon".
+
 ### Manipulators
 Manipulators alter the song that is composed by the basic fields.
 
@@ -29,4 +38,4 @@ The Manipulators include
 I will write about how to use each soon and add others.
 Also, I plan to add tests soon
 
-songg is © r. david roe 2016.
+songg is © r. david roe 2016 - 18.
