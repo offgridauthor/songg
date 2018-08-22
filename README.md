@@ -37,3 +37,5 @@ The Manipulators include
 
 I will write about how to use each soon and add others.
 Also, I plan to add tests soon.
+
+songg is © robert d. roe 2016-18
