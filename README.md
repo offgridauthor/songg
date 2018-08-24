@@ -1,4 +1,4 @@
-(This code is in the process of being converted to use ES6 and ES7.)
+(This code is in the process of being converted to use conventions more standard to ES6+, and to take advantage of ES syntactic features.)
 
 #### Music composition via scripting
 
