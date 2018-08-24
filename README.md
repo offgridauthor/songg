@@ -1,4 +1,4 @@
-(This code is in the process of being converted to use conventions more standard to ES6+, and to take advantage of ES syntactic features.)
+(This code is in the process of being converted to use conventions more standard to ES6+, and to demonstrate the newest EcmaScript coding features.)
 
 #### Music composition via scripting
 
