@@ -1,7 +1,8 @@
 /**
  * Extendable class for altering phases of Songs
  */
-import Manipulator from './Manipulator.js';
+import Manipulator from './Manipulator.mjs';
+import manipulatorFactory from '../manipulatorFactory.mjs';
 import fs from 'fs';
 
 /**
@@ -22,7 +23,7 @@ class PhaseManipulator extends Manipulator {
   }
 
   /**
-   * Run a phrase on the
+   * Run a frase manip by finding the frase and executing the code.
    *
    * @todo: right now, only handles a single frase; needs
    * to handle multiple locatable within here (move code
@@ -40,7 +41,6 @@ class PhaseManipulator extends Manipulator {
 
   /**
    * Default action.
-   *
    */
   runFraseManipulators (someFrases, dat) {
     _.each(someFrases, (fr) => {
@@ -75,13 +75,12 @@ class PhaseManipulator extends Manipulator {
    *
    */
   manipulateFrase (fr, dat) {
-    this.requireValidFraseManipulator(this.manipName);
 
     const manipInstance = this.getFraseManipInstance(this.manipName);
 
     // Carry out manipulations
     manipInstance.setSongData(this.getSongData());
-    manipInstance.notes = fr.frozenNotes();
+    manipInstance.notes = fr.referToNotes();
     manipInstance.config = dat;
 
     manipInstance.config.action =
@@ -93,25 +92,14 @@ class PhaseManipulator extends Manipulator {
     // manipulated notes that we obtain from the manipulator.
     fr.set('notes', manipInstance.notes);
 
-    // Here, caching the fraseSnazzifiers, which has never been
-    // needed.
-    // this.fraseSnazzifiers.push();
-  }
-
-  requireValidFraseManipulator (nm) {
-    const
-      manipName = './Manipulators/' + nm + '.js',
-      doesExist = fs.existsSync(manipName),
-      doThrow = !doesExist;
-
-    if (doThrow) {
-      throw new Error('Frase Manipulator "' + manipName + '" does not seem to exist.');
+    if (manipInstance.alterFrase) {
+      fr = manipInstance.alterFrase(fr);
     }
   }
 
   getFraseManipInstance (nm) {
-    const ManipClass = require('./' + nm + '.js'),
-      manipInstance = new ManipClass();
+    const
+      manipInstance = manipulatorFactory(nm);
     if (!manipInstance || !manipInstance.setSongData) {
       throw new Error('Frase Manipulator "' + nm + '" does not seem to exist or is malforned.');
     }
@@ -124,7 +112,6 @@ class PhaseManipulator extends Manipulator {
    */
   forMatchingFrases (crdNm, crdQuery, method) {
     let fr = this.findMatchingFrases(crdNm, crdQuery);
-    // the above returns a subset of all frases such as "Dm" (frase name)
     if (!fr) {
       throw new Error('could not find frases ', crdNm, crdQuery);
     }
@@ -165,6 +152,7 @@ class PhaseManipulator extends Manipulator {
    * variables in the query method call)
    */
   parseFraseQuery (crdIdx) {
+
     if (_.isNumber(crdIdx)) {
       return {q: 'findFraseByIndex', k: crdIdx};
     }
@@ -197,4 +185,4 @@ class PhaseManipulator extends Manipulator {
   }
 }
 
-module.exports = PhaseManipulator;
+export default PhaseManipulator;

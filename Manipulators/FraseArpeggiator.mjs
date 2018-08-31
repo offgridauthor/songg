@@ -5,7 +5,7 @@
  * instead of being a PhaseManip
  */
 
-import FraseManipulator from './FraseManipulator.js';
+import FraseManipulator from './FraseManipulator.mjs';
 
 class FraseArpeggiator extends FraseManipulator {
   constructor () {
@@ -23,16 +23,21 @@ class FraseArpeggiator extends FraseManipulator {
   simple (rawNotes) {
     const cloned = this.clone(rawNotes),
       nts = this.wrapNotes(cloned);
+      // console.log('bef', nts);
 
     _.each(nts, (nt, idx) => {
+
       let pegMap = this.config.data;
+
       if (pegMap[idx] !== undefined) {
         nt.relativeTime = pegMap[idx];
       } else {
         nt.relativeTime = 0;
       }
     });
+
     this.orderNotes(nts);
+    // console.log('aft, ' , nts);
     return nts;
   }
 
@@ -46,4 +51,4 @@ class FraseArpeggiator extends FraseManipulator {
   }
 }
 
-module.exports = FraseArpeggiator;
+export default FraseArpeggiator;

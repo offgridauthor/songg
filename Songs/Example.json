@@ -1,10 +1,13 @@
 {
-  "disableArpeg": false,
   "manipParams": {
     "Arpeggiator": [
       {
-        "phases": "aphrodite",
-        "data": [60,30,0,90]
+        "phases": "aphrodite:2",
+        "data": [60, 30, 0, 90]
+      },
+      {
+        "phases": "aphrodite:1",
+        "data": [0, 64, 128, 184]
       }
     ]
   },
@@ -110,34 +113,39 @@
         "octave": "D4"
       }
   ],
+  "composition": ["aphrodite", "aphrodite"],
   "phases": {
     "penelope": {
-        "measureCount": 1,
+        "measureCount": 2,
         "composition": [
-          "G", "G",
+          "C", "G",
           "F", "F",
           "Em", "Em",
           "Dm", "Dm"
         ],
-        "demoBeatLength": 0.8,
-        "fraseDuration": 64,
-        "imposedFraseLength": 256,
-        "fraseDel": 0
+        "noteDuration": 64,
+        "imposedFraseLength": 256
       },
       "aphrodite": {
-          "measureCount": 1,
+          "measureCount": 4,
           "remark": "consider E-flat-dim (Ebo), D, Ddim, Cdim ",
           "composition": [
-            "G",
+            {
+                "name": "CMaj7",
+                "Arpeggiator": [0, 40, 70, 90],
+                "Snazzifier": {
+                  "remark": "note that for now, local config breaks with phase-based config"
+                },
+                "duration": 800,
+                "noteDuration": 800
+            },
             "G",
             "F", "F",
             "Em", "Em",
             "Dm", "Dm"
           ],
-          "demoBeatLength": 0.8,
-          "fraseDuration": 64,
+          "noteDuration": 64,
           "imposedFraseLength": 256,
-          "fraseDel": 0,
           "manipParams": {
                 "RootChanger": [{
                   "chord": "Dm",

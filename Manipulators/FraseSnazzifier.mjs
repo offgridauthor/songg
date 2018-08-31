@@ -1,7 +1,7 @@
 /**
  * Snazzify a frase ; add or remove notes for that frase, for example.
  */
-import FraseManipulator from './FraseManipulator.js';
+import FraseManipulator from './FraseManipulator.mjs';
 class FraseSnazzifier extends FraseManipulator {
   constructor () {
     super();
@@ -136,4 +136,4 @@ class FraseSnazzifier extends FraseManipulator {
   }
 }
 
-module.exports = FraseSnazzifier;
+export default FraseSnazzifier;

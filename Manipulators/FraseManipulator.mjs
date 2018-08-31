@@ -2,18 +2,11 @@
  * Snazzify a frase ; add or remove notes for that frase, for example.
  */
 
-import Manipulator from './Manipulator.js';
-import Note from '../Note.js';
-
-// @todo: change to the import stmt.
-const
-  tonalNote = require('tonal-note'),
-  tonalScale = require('tonal-scale'),
-  tonalChord = require('tonal-chord');
-
-// import tonalNote from 'tonal-note';
-// import tonalScale from 'tonal-scale';
-// import tonalChord from 'tonal-chord';
+import Manipulator from './Manipulator.mjs';
+import Note from '../Note.mjs';
+import tonalNote from 'tonal-note';
+import tonalScale from 'tonal-scale';
+import tonalChord from 'tonal-chord';
 
 class FraseManipulator extends Manipulator {
   constructor () {
@@ -37,7 +30,6 @@ class FraseManipulator extends Manipulator {
   go () {
     let wrappedNotes,
       rawNotes;
-
     this.validateAlgo(this.config.action);
     wrappedNotes = this[this.config.action](this.notes, this.config);
     rawNotes = this.unwrapNotes(wrappedNotes);
@@ -46,7 +38,7 @@ class FraseManipulator extends Manipulator {
 
   validateAlgo (nm) {
     if (this.algos.indexOf(nm) === -1) {
-      throw new Error('Invalid algorithm for frase snazzification');
+      throw new Error('Invalid algorithm ("' + nm + '") for ' + this.constructor.name);
     }
   }
 
@@ -102,7 +94,7 @@ class FraseManipulator extends Manipulator {
    * Limit to within limits octave of the Original
    *
    *
-   * @param {string} origOct Original note's octave (the splitee)
+   * @param {String} origOct Original note's octave (the splitee)
    * @param {Array}  limits  [limit difference below, limit difference above]
    * @param {note}   noteå   Note to alter.
   */
@@ -200,7 +192,7 @@ class FraseManipulator extends Manipulator {
 
   // Getters and setters
   set notes (notes) {
-    if (!this.notseHistory) {
+    if (!this.notesHistory) {
       this.notesHistory = [];
     }
 
@@ -235,4 +227,4 @@ class FraseManipulator extends Manipulator {
   }
 }
 
-module.exports = FraseManipulator;
+export default FraseManipulator;

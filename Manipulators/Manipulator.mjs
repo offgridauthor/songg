@@ -1,7 +1,8 @@
 // Base class for a manipulator
-import Note from '../Note.js';
+import Note from '../Note.mjs';
 
 class Manipulator {
+
   constructor () {
     this.name = 'Manipulator';
   }
@@ -73,4 +74,4 @@ class Manipulator {
   }
 }
 
-module.exports = Manipulator;
+export default Manipulator;
