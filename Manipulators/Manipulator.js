@@ -2,10 +2,6 @@
 import Note from '../Note.js';
 
 class Manipulator {
-  constructor () {
-    this.name = 'Manipulator';
-  }
-
   /**
    * This method couples data from the song file (for the
     particular Manipulator as configured, there) with the originary
@@ -70,6 +66,14 @@ class Manipulator {
 
   unwrapNotes (ntsArray) {
     return _.map(ntsArray, (ntObj) => { return { note: ntObj.ntAttrs }; });
+  }
+
+  set name (nm) {
+    throw new Error('Name is read-only for Manipulators.');
+  }
+
+  get name () {
+    return this.constructor.name;
   }
 }
 

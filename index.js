@@ -3,14 +3,13 @@ import Inflator from './Inflator.js';
 const express = require('express'),
   app = express(),
   fs = require('fs'),
-  dat = fs.readFileSync('./Songs/Example.json'),
+  dat = fs.readFileSync('./Songs/Example-1.json'),
   _ = require('underscore'),
   utilExt = require('./codelibs/utilsExtension.js'),
   path = require('path');
 _._ = utilExt;
 
-/**
-  As of this note, run the server with "npm run mon", which accesses
+/** As of this note, run the server with "npm run mon", which accesses
   a command defined in package.json
 
   The code is being converted to ES6/7 via Babel, and the "mon"
@@ -34,34 +33,36 @@ app.get('/', (request, response) => {
 
 // Data route , which supplies the song data to the client's ajax call
 app.get('/songSystem', (request, response) => {
-  // The inflator sort of breathes initial life into the raw song data.
-  const song = (new Inflator()).inflate(
-    JSON.parse(dat)
-  );
+  // The inflator sets up structure for manipulation, based on
+  // base levels of the song data.
+  let fileModel = new Inflator(),
+    songData,
+    jsonSong;
 
-  let bars,
-    savedFile,
-    songData;
+  // Inflate to default state.
+  fileModel.inflate(JSON.parse(dat));
 
-  song.compile();
-  song.freezePhases();
-  song.runHooks();
+  // Run all manipulators
+  fileModel.manipulateTracks();
 
-  // After the massaging is done, this section obtains the notes in 2 formats
-  // for passing to the client.
+  // internally to song, strip out measures and phases , etc, leaving
+  // only arrays of note events.
+  fileModel.compileTrackEvents();
 
-  // For MIDI.js to play the song; and for
-  bars = song.readBars();
+  // Run the hooks that are made for streams of events (track-holistic manipulators)
+  fileModel.trackHooks();
+
   // The midi file exporter or writer to export them
-  savedFile = song.saveMidi();
+  fileModel.saveMidi();
+
+  // With file saved, respond with data.
   songData = {
-    'song': bars,
-    // 'writeableSong': wrBars, //see song model for further comments; why
-    // this is remarked out.
-    'midiLink': savedFile.get('outputLink')
+    'song': fileModel.readBars(),
+    'midiLink': fileModel.get('outputLink')
   };
-  app.jsonSong = JSON.stringify(songData);
-  response.write(app.jsonSong);
+
+  jsonSong = JSON.stringify(songData);
+  response.write(jsonSong);
   response.send();
 });
 

@@ -37,7 +37,6 @@ class FraseManipulator extends Manipulator {
   go () {
     let wrappedNotes,
       rawNotes;
-
     this.validateAlgo(this.config.action);
     wrappedNotes = this[this.config.action](this.notes, this.config);
     rawNotes = this.unwrapNotes(wrappedNotes);
@@ -46,7 +45,7 @@ class FraseManipulator extends Manipulator {
 
   validateAlgo (nm) {
     if (this.algos.indexOf(nm) === -1) {
-      throw new Error('Invalid algorithm for frase snazzification');
+      throw new Error('Invalid algorithm ("' + nm + '") for ' + this.constructor.name);
     }
   }
 
@@ -102,7 +101,7 @@ class FraseManipulator extends Manipulator {
    * Limit to within limits octave of the Original
    *
    *
-   * @param {string} origOct Original note's octave (the splitee)
+   * @param {String} origOct Original note's octave (the splitee)
    * @param {Array}  limits  [limit difference below, limit difference above]
    * @param {note}   noteå   Note to alter.
   */
@@ -200,7 +199,7 @@ class FraseManipulator extends Manipulator {
 
   // Getters and setters
   set notes (notes) {
-    if (!this.notseHistory) {
+    if (!this.notesHistory) {
       this.notesHistory = [];
     }
 

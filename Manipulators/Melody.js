@@ -1,52 +1,36 @@
 /**
- * For a single bar, temporally spread the notes according to the indicated
- * pattern.
+ * Snazzify a frase from the perspective of a phase; for example, find a
+ * frase by chord name and order within the phase, then add or remove notes
+ * for that frase.
  *
  */
 
-var util = require('util'),
-  PhaseManipulator = require('./PhaseManipulator.js');
+import PhaseManipulator from './PhaseManipulator.js';
 
-function Melody () {
-  PhaseManipulator.apply(this, arguments);
-  this.name = 'Melody';
+class Melody extends PhaseManipulator {
+  go (dat) {
+
+    dat.forEach((datRow) => {
+      this[datRow.action](datRow);
+    });
+  }
+
+
+  ['insert-after'] (phaseManipData) {
+
+    let chord = phaseManipData.chord,
+      location = phaseManipData.location,
+      fr = this.findMatchingFrases(chord, location),
+      cloned;
+
+    if (!fr || !fr[0]) {
+      throw new Error('Could not find frase for this data:', JSON.stringify({chord, location}, 2, null));
+    }
+    cloned = fr[0].clone();
+    cloned.duration = 1000;
+    this.phase.testInsertAfter(fr[0], cloned);
+
+  }
 }
-
-util.inherits(Melody, PhaseManipulator);
-
-/**
-
- */
-Melody.prototype.go = function (phs, song) {
-  this.createMelody = function (params) {
-  };
-
-  this.overlayMelody = function () {
-  };
-
-  this.insertMelody = function () {
-  };
-
-  this.getScaleFromPrecedence = function () {
-    let phsScale = phs.get('scale'),
-      songScale;
-
-    if (phsScale) {
-      return phsScale;
-    }
-
-    if (song === undefined) {
-      return null;
-    }
-
-    songScale = song.get('scale');
-
-    if (songScale) {
-      return songScale;
-    }
-
-    return null;
-  };
-};
 
 module.exports = Melody;

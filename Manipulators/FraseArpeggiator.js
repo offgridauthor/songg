@@ -23,16 +23,21 @@ class FraseArpeggiator extends FraseManipulator {
   simple (rawNotes) {
     const cloned = this.clone(rawNotes),
       nts = this.wrapNotes(cloned);
+      // console.log('bef', nts);
 
     _.each(nts, (nt, idx) => {
+
       let pegMap = this.config.data;
+
       if (pegMap[idx] !== undefined) {
         nt.relativeTime = pegMap[idx];
       } else {
         nt.relativeTime = 0;
       }
     });
+
     this.orderNotes(nts);
+    // console.log('aft, ' , nts);
     return nts;
   }
 

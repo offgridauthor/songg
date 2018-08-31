@@ -30,8 +30,8 @@
 // simply becaues implementation is more involved. Button gets purposefully
 // disabled with tone.js in this codebase for now.
 
-window.instrumentation = 'sf';
-// window.instrumentation = 'wa'; //disables "stop" button
+// window.instrumentation = 'sf';
+window.instrumentation = 'wa'; //disables "stop" button
 
 /**
  * Main function; play demo song and write a link to download .midi file.
@@ -93,7 +93,6 @@ function initiateAndStartPlayerInterface (notes, $stopper) {
   let prom = getInstrumentPromise();
   // With the instru ready go, we can...
   prom.then((instrumentation) => {
-    console.log(instrumentation);
     // link it to the stop button
     activateStopper($stopper, instrumentation.instrument);
     // and use it to play notes
@@ -187,7 +186,7 @@ function getSynth () {
     }
   },
   synth =
-    new Tone.Synth(synthesizers.saw)
+    new Tone.Synth(synthesizers.triangle)
     .toMaster();
 
   return synth;

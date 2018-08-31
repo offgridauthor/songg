@@ -7,7 +7,7 @@ const tonalNote = require('tonal-note');
  * Importantly, this.ntAttrs is a reference to a set of notes
  * in a song somewhere.
  *
- * @param  {object} atrs Reference to a set of attributes in
+ * @param  {Object} atrs Reference to a set of attributes in
  *                       a song that make up a single note.
  *
  * @return {undefined}
@@ -21,11 +21,11 @@ class Note {
     let clonedAttribs = this.getNoteAttribs();
     return new Note({note: clonedAttribs});
   }
-
-  compile () {
-    let newAttrs = tonalNote.props(this.letter + this.oct);
-    this.ntAttrs = _.extend(this.ntAttrs, newAttrs);
-  }
+  // 
+  // compile () {
+  //   let newAttrs = tonalNote.props(this.letter + this.oct);
+  //   this.ntAttrs = _.extend(this.ntAttrs, newAttrs);
+  // }
 
   multiplyDuration (multiplicand) {
     this.duration = this.duration * multiplicand;

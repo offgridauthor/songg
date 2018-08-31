@@ -1,101 +1,79 @@
 
 import Segment from './Segment.js';
 import fs from 'fs';
-let phsStart;
 
+/**
+ * Largest constituent member for a Song instance; contains frases.
+ */
 class Phase extends Segment {
-  constructor (data, nm, order, opts) {
+  /**
+   * Construct!
+   *
+   * @param  {Array}     frases      Song data and phase data
+   * @param  {String}    nm          Name of this phase
+   * @param  {Number}    order       Order within the song's phase array for this phase
+   * @param  {Object}    phaseParams Options related to
+   *
+   * @return {Undefined}
+   */
+  constructor (frases, nm, order, phaseParams) {
     super();
-    this.name = 'Phase';
     this.allowedProps = [
       'imposedFraseLength',
       'frases',
       'name',
       'fraseDuration',
-      'disableArpeg',
       'index',
       'phaseDelay',
       'manipParams',
-      'chords'
+      'chords',
+      'duration',
+      'startTime'
     ];
 
     this.frases = null;
     this.imposedFraseLength = null;
-    this.initialize(data, nm, order, opts);
+    this.initialize(frases, nm, order, phaseParams);
   }
 
-  getManipParam (manipName) {
-    var confDat = this.get('manipParams');
-    if (confDat) {
-      if (confDat[manipName] !== undefined) {
-        return confDat[manipName];
-      }
-    }
-  }
-
-  initialize (data, nm, order, optParams) {
-    this.verifySongOpts(optParams);
-    this.set('frases', data);
+  /**
+   * Work from constructor
+   *
+   * @param  {Array}     frases      Song data and phase data
+   * @param  {String}    nm          Name of this phase
+   * @param  {Number}    order       Order within the song's phase array for this phase
+   * @param  {Object}    phaseParams Options related to
+   *
+   * @return {Undefined}
+   */
+  initialize (frases, nm, order, phaseParams) {
+    // @todo: dont pass in song-related data; only for this phase.
+    this.verifySongOpts(phaseParams);
+    this.set('frases', frases);
     this.set('name', nm);
-    this.setOptionals(optParams);
     this.set('index', order);
-  }
-
-  getIndex () {
-    return this.get('index');
-  }
-
-  setOptionals (opts) {
-    this.set('imposedFraseLength', opts.imposedFraseLength);
-    this.set('fraseDuration', opts.fraseDuration);
-    this.set('manipParams', opts.manipParams);
-    this.set('chords', opts[app.songAttributesKey]['chords']);
-
-    var disArp = this.calcDisableArpeg(opts);
-    _._.requireBoolean(disArp);
-
-    // You can set the arpeggiation in a phase--but as of
-    // this note, it is only enforced at song level
-    this.set('disableArpeg', disArp);
+    this.set('imposedFraseLength', phaseParams.imposedFraseLength);
+    this.set('fraseDuration', phaseParams.fraseDuration);
+    this.set('manipParams', phaseParams.manipParams);
+    this.set('chords', phaseParams[app.songAttributesKey]['chords']);
   }
 
   get (propName) {
     if (this.allowedProps.indexOf(propName) === -1) {
-      throw new Error('Disallowed property name');
+      throw new Error('Disallowed property name : ' + propName);
     }
     return this[propName];
   }
 
   set (propName, propVal) {
     if (this.allowedProps.indexOf(propName) === -1) {
-      throw new Error('Disallowed property name');
+      throw new Error('Disallowed property name: ' + propName);
     }
 
     if (propVal === undefined) {
       this[propName] = null;
     }
     this[propName] = propVal;
-  }
-
-  calcDisableArpeg (opts) {
-    _._.verifySongOpts(opts);
-    var disArpp = null;
-
-    if (_.isBoolean(opts.disableArpeg)) {
-      disArpp = opts.disableArpeg;
-    }
-
-    if (disArpp === null) {
-      if (opts[app.songAttributesKey]['disableArpeg'] && opts[app.songAttributesKey]['disableArpeg'] === true) {
-        disArpp = true;
-      } else {
-        disArpp = false;
-      }
-    }
-
-    _._.requireBoolean(disArpp);
-
-    return disArpp;
   }
 
   forEachFrase (fn) {
@@ -114,69 +92,6 @@ class Phase extends Segment {
     var fraseArray = this.referToFrases();
 
     return fraseArray[0]['notes'][0];
-  }
-
-  /**
-   * Based on previous phrase, give this one its
-   * start position in the overall song.
-   *
-   * Don't use this function on the first phase
-   * of the song; no reason to do so.
-   *
-   * @param  {object} previousPhase previous phase data
-   */
-  hookTo (previousPhase) {
-    var firstNote = this.getFirstNote();
-
-    if (previousPhase === null) {
-      if (this.getIndex() === 0) {
-        firstNote.note.phaseDelay = 0;
-      }
-    }
-
-    if (firstNote.note.phaseDelay === undefined) {
-      if (typeof (previousPhase) === 'object') {
-        firstNote.note.phaseDelay = previousPhase.getFollowingTime();
-      }
-    }
-  }
-
-  timeFrases (isFirstPhase) {
-    var that = this;
-    this.forEachFrase(function (frase, idx) {
-      if (idx !== frase.getIndex()) {
-        throw new Error('Badly indexed frases exist');
-      }
-      phsStart = that.getFirstNote().note['phaseDelay'];
-      frase.hookTo(phsStart);
-    });
-  }
-
-  getFollowingTime () {
-    var followingTime,
-      imposed = this.getImposedFraseLength(),
-      fraseDur = this.get('fraseDuration');
-
-    if (imposed) {
-      followingTime = imposed * this.frases.length;
-    } else if (fraseDur) {
-      followingTime = fraseDur * this.frases.length;
-    } else {
-      throw new Error('fraseDuration or imposedFraseLength is required per phase');
-    }
-
-    /**
-     * To do: Make it so that if there is no imposedFraseLength either, we start on finishing
-     * the last note. After that, perhaps even add a relative offset option; minus x ticks
-     * till end of last note.
-     *
-     */
-
-    if (followingTime === undefined) {
-      throw new Error('Unable to calculate following time');
-    }
-
-    return followingTime;
   }
 
   getName () {
@@ -286,31 +201,39 @@ class Phase extends Segment {
   }
 
   isLessThan (sought, fraseSubset) {
-    let endPoint = (fraseSubset.length) < sought
+    let matches,
+      endPoint = (fraseSubset.length) < sought
         ? fraseSubset.length
         : sought,
       arr = _.range(1, endPoint);
 
-    const matches = new Set(arr);
+    matches = new Set(arr);
     return matches;
   }
 
   isGreaterThan (sought, fraseSubset) {
-    let arr;
+    let arr,
+      matches;
+
     if (sought > fraseSubset.length) {
       arr = [];
     } else {
       arr = _.range(sought + 1, fraseSubset.length + 1);
     }
 
-    const matches = new Set(arr);
+    matches = new Set(arr);
     return matches;
   }
 
   /**
-   * Given an array of elements ("frasesSubset") and another, "indexes",
-     which is 1-indexed, return all items in the first array
-     ("somefrasesSubsetSubset") that fall at one of the indexes.
+  * Given an array of elements ("frasesSubset") and another, "indexes",
+  * which is 1-indexed, return all items in the first array
+  * ("somefrasesSubsetSubset") that fall at one of the indexes.
+   *
+   * @param  {Array} frasesSubset description
+   * @param  {Object} indexes     description
+   *
+   * @return {Array}              description
    */
   itemsAtIndexes (frasesSubset, indexes) {
     const idxArr = Array.from(indexes);
@@ -344,10 +267,62 @@ class Phase extends Segment {
     }
 
     let byName = _.filter(this.frases, function (obj) {
-      let retBool = obj.config.name === nm;
+      let retBool = obj.name === nm;
       return retBool;
     });
     return byName;
+  }
+
+  /**
+   * Set timing for the frases in this phase.
+   *
+   * @return {Undefined}  description
+   */
+  innerTiming () {
+    // initialize as 0 , for first frase.
+    let newLen = 0;
+    this.forEachFrase(fr => {
+      console.log('fr duration');
+      console.log(fr.getDuration);
+      console.log('start:', newLen + 1);
+      // set frase to start on the midi tick following the
+      // end of the prior frase's duration.
+      fr.setPhaseRelativeStartTime(newLen + 1);
+      newLen += fr.getDuration(); // Should this + 1 remain? Brief usage test seems fine.
+    });
+    console.log('frase duration', newLen);
+    // set this phase's duration to the total of all of the frases
+    this.set('duration', newLen);
+  }
+
+  testInsertAfter (referenceToElement, insertableElement) {
+  //myArray.findIndex(x => x.hello === 'stevie')
+    let refIndex = this.frases.findIndex(
+      (x) => {
+        console.log('testing these two (ref and iterated): ', [referenceToElement, x], (x === referenceToElement));
+        return (x === referenceToElement);
+      }
+    );
+    console.log('found object at index ', refIndex + 1);
+    this.insertFrase(refIndex + 1, insertableElement);
+  }
+
+  insertFrase (idx, fr) {
+    // if (fr.constructor.name !== 'Frase') {
+    //   throw new Error();
+    // }
+    this.frases.splice(idx, 0, fr);
+  }
+  /**
+   * Update frases with the new phase duration.
+   */
+  setFraseStartTimes () {
+    let phsStartTm = this.get('startTime');
+    this.forEachFrase((fr) => {
+      let relStartTime = fr.get('phaseRelativeStartTime');
+      fr.set('startTime', relStartTime + phsStartTm);
+      fr.setInNotes('fraseStartTime', relStartTime + phsStartTm);
+    });
   }
 }
 
