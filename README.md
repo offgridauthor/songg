@@ -1,4 +1,4 @@
-(This code is in the process of being converted to use ES6 and ES7.)
+(This code is in the process of being converted to use conventions more standard to ES6+, and to demonstrate the newest EcmaScript coding features.)
 
 #### Music composition via scripting
 
@@ -36,6 +36,6 @@ The Manipulators include
 
 
 I will write about how to use each soon and add others.
-Also, I plan to add tests soon
+Also, I plan to add tests soon.
 
-songg is © r. david roe 2016 - 18.
+songg is © robert d. roe 2016-18
