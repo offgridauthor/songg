@@ -4,8 +4,9 @@ import fs from 'fs';
 import _ from 'underscore';
 import utilExt from './codelibs/utilsExtension.mjs';
 
-const dat = fs.readFileSync('./Songs/Example-1.json');
-const  app = express();
+const dat = fs.readFileSync('./Songs/Example-1.json'),
+  app = express();
+
 _._ = utilExt;
 
 /** As of this note, run the server with "npm run mon", which accesses

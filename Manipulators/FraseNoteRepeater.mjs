@@ -1,7 +1,7 @@
 /**
- * Snazzify a frase ; add or remove notes for that frase, for example.
+ * Add notes into a frase which will be a repetition of the specified note
+ * already in the frase.
  */
-
 import FraseManipulator from './FraseManipulator.mjs';
 class FraseNoteRepeater extends FraseManipulator {
   constructor () {
@@ -11,12 +11,10 @@ class FraseNoteRepeater extends FraseManipulator {
     ];
   }
 
-  go () {
-    super.go();
-  }
-
   /**
-   *  When there is one data entry per note.
+   * Make adjustments.
+   * This current version (as of the commit that probably follows
+   * 6c4ec7be6e880c0) presumes a single prop change per note.
    */
   simple (rawNotes) {
     const cloned = this.clone(rawNotes),
@@ -34,7 +32,6 @@ class FraseNoteRepeater extends FraseManipulator {
       loopVar = 0;
 
       while (loopVar < howMany) {
-
         let nn = nts[idx].clone();
         _.each(
           datum,
@@ -42,6 +39,8 @@ class FraseNoteRepeater extends FraseManipulator {
             if (key === 'index') {
               return;
             }
+            // use the 0-indexed val; for now, just one key->val
+            // option per note.
             nn[key] = val[0];
           }
         );

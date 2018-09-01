@@ -1,8 +1,6 @@
 /**
  * For a single bar, temporally spread the notes according to the indicated
  * pattern.
- * @todo: This really needs to be rewritten as a FraseManip that runs in the right way,
- * instead of being a PhaseManip
  */
 
 import FraseManipulator from './FraseManipulator.mjs';
@@ -10,23 +8,21 @@ import FraseManipulator from './FraseManipulator.mjs';
 class FraseArpeggiator extends FraseManipulator {
   constructor () {
     super();
-    this.name = 'FraseArpeggiator';
     this.algos = [
       'simple'
     ];
   }
 
-  go () {
-    super.go();
-  }
-
+  /**
+   * Taking the specified raw notes,
+   * method depends on composition data (from original JSON) for a "pegMan",
+   * arpeggiation map, move the map's specified midi times.
+   */
   simple (rawNotes) {
     const cloned = this.clone(rawNotes),
       nts = this.wrapNotes(cloned);
-      // console.log('bef', nts);
-
+    // @todo: Probably replace with _.map or native Array.map
     _.each(nts, (nt, idx) => {
-
       let pegMap = this.config.data;
 
       if (pegMap[idx] !== undefined) {
@@ -37,17 +33,8 @@ class FraseArpeggiator extends FraseManipulator {
     });
 
     this.orderNotes(nts);
-    // console.log('aft, ' , nts);
-    return nts;
-  }
 
-  orderNotes (notes) {
-    // let nts = JSON.parse(JSON.stringify(notes));
-    notes.sort(function (a, b) {
-      return a.relativeTime > b.relativeTime;
-    }).map(function (entry) {
-      return entry.score;
-    }).reverse();
+    return nts;
   }
 }
 

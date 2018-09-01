@@ -1,8 +1,11 @@
 /**
- * Snazzify a frase ; add or remove notes for that frase, for example.
+ * Change the frase in a basic way, such as increasing its duration.
+ * The "data" property from the manipulator's composition (JSON file entry)
+ * will override the original.
  *
  */
 import FraseManipulator from './FraseManipulator.mjs';
+
 class FraseChanger extends FraseManipulator {
   constructor () {
     super();

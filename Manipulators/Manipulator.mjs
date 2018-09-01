@@ -1,8 +1,5 @@
 // Base class for a manipulator
-import Note from '../Note.mjs';
-
 class Manipulator {
-
   constructor () {
     this.name = 'Manipulator';
   }
@@ -53,6 +50,12 @@ class Manipulator {
     return this._songData;
   }
 
+  /**
+   * These aliases are really vestigial of earlier phases of development;
+   * may be redundant with the es6 stuff above.
+   */
+
+  // - - - - - song data getter and setter - - - - - - - -
   setSongData (songDat) {
     this.songData = songDat;
   }
@@ -63,14 +66,6 @@ class Manipulator {
 
   clone (µ) {
     return JSON.parse(JSON.stringify(µ));
-  }
-
-  wrapNotes (ntsArray) {
-    return _.map(ntsArray, (nt) => { return new Note(nt); });
-  }
-
-  unwrapNotes (ntsArray) {
-    return _.map(ntsArray, (ntObj) => { return { note: ntObj.ntAttrs }; });
   }
 }
 
