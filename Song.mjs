@@ -2,13 +2,14 @@
   * Model class for raw song data
   *
   **/
+import Phase from './Segment.mjs';
 import Phase from './Phase.mjs';
 
 
 const div1 = .75,
   secondsDivisor = 256;
 
-class Song {
+class Song extends Segment {
   /**
    * Backbone model defaults
    *

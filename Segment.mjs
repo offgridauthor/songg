@@ -4,5 +4,5 @@
  */
 
 export default class Segment {
-  // Shell class for common functionality
+  // Shell class for common functionality among e.g. Song, Phase, and Frase.
 }
