@@ -16,7 +16,7 @@ Segments are the data model and submodel. They include the architectural section
 This is not a front end; the front-end code is provisional, and just a starting place for futher front-end development. In the provided code, you can download the midi file of the song you're creating. You should hear it played in the browser, as well.
 
 ### Overview of Processing
-The codebase "Songg" (working title) is a music composition library. Primary input is in the form of chord names, note names, keys, and tonal increments in traditional music theory. Focus is overwhelmingly on the backend, so far.  
+Primary input is in the form of chord names, note names, keys, and tonal increments in traditional music theory. Focus is overwhelmingly on the backend, so far.  
 
 In the current (developmental) version, the medium of input is a json file. It's a notion far more semantic than MIDI, and is enabled by [tonal.js](https://github.com/danigb/tonal). The data format is intended to be creatively useful for musicians who also know how to code. Some json key names correspond to code classes; and in a fashion meant to be complimentary to the data, the code is extensible.
 
