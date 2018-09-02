@@ -1,25 +1,24 @@
 /**
   * Model class for raw song data
-  *
+  * 
   **/
-import Phase from './Segment.mjs';
+import Segment from './Segment.mjs';
 import Phase from './Phase.mjs';
-
 
 const div1 = .75,
   secondsDivisor = 256;
 
 class Song extends Segment {
+
   /**
    * Backbone model defaults
    *
    * @type {Object}
    */
   constructor (initProps, songComp, trackNumber, manipParams) {
-
+    super();
     this.trackNumber = trackNumber;
     this.initialize(initProps, manipParams);
-
   }
 
   /**
@@ -76,8 +75,6 @@ class Song extends Segment {
     }
   }
 
-
-
   /**
    * Execute specified function per phase in song
    *
@@ -129,7 +126,7 @@ class Song extends Segment {
   runHooks () {
     this.songHooks();
 
-    // if hookws (Meaning manipulators) always update their respective durations,
+    // if hooks (Meaning manipulators) always update their respective durations,
     // then timePhases should always respect that. No worrying about the phase times or
     // overall song time in manips.
     this.phaseHooks();
@@ -185,6 +182,15 @@ class Song extends Segment {
     );
   }
 
+  /**
+   * Given lists such as aphrodite:2, parses the list into its respective phases.
+   * aphrodite:2 is PHASENAME:2 indicated that phase's 2nd instance in the song.
+   * If no colon + index, it uses the first.
+   *
+   * @param  {Array} phaseList List of phases
+   *
+   * @return {}
+   */
   phaseMapForList (phaseList) {
     let all =
       _.map(
@@ -210,7 +216,7 @@ class Song extends Segment {
 
           if (idx === null) {
             if (byName.length > 1) {
-              throw new Error('More than one phases exists for ' + nm + '; please specify index (eg)');
+              throw new Error(`More than one phases exists for ${nm}; please specify index`);
             } else {
               return byName[0];
             }
@@ -222,7 +228,6 @@ class Song extends Segment {
           }
         }
       );
-
     return all;
   }
 }

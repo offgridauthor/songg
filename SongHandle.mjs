@@ -1,26 +1,52 @@
 import parser from 'note-parser';
 import Song from './Song.mjs';
 import Frase from './Frase.mjs';
-import fs from 'fs';
-import Midi from 'jsmidgen';
-
+import SongFile from './SongFile.mjs';
 import tonal from 'tonal';
 
 const secondsDivisor = 256,
   Chord = tonal.Chord;
+
 /**
- * Given the basic theoretical data of a song, this class
- * makes the entire default set of bars.
+ * Class to create a song from the model, store it as midi, and produce links
+ * to it.
+ *
+ * Given the basic theoretical data of a song, this class makes the entire default set of bars.
+ * It then orchestrates the defined Manipulators.
  *
  */
-class Inflator {
+class SongHandle {
 
-  constructor () {
+  /**
+   * Construct song; make JSON into a usable, live object, augmenting
+   * theoretical data and distributing default timing (where "default"
+   * means pre-Manipulator).
+   *
+   * @param {Object} songDat parsed JSON file
+   */
+  constructor (songDat) {
+    let sf;
+    // each element is the iterated phase, e.g. aphrodite x 3 measures (iterations)
     this.writeableTracks = [];
-    this.eventTracks = [];
+
+    // directory in which to save Midi
     this.outputDir = './public/outputMidi';
-    this.fileName = 'first-measured';
-    this.ext = 'midi';
+
+    // name for file
+    this.fileName = songDat.name || 'nameless-song';
+
+    // Midi extension to use
+    this.ext = 1;
+
+    sf = new SongFile(
+      this.fileName, this.outputDir
+    );
+
+    this.set('songFile', sf);
+
+    // run main process
+    this.inflate(songDat);
+
   }
 
   /**
@@ -35,6 +61,9 @@ class Inflator {
     this.compose(songDat);
   }
 
+  /**
+   *
+   */
   compose (songGlobalDat) {
     let tracks = songGlobalDat.composition,
       indexInSong = 0,
@@ -42,18 +71,12 @@ class Inflator {
 
     // For each track . . . a series of phase names from global data.
     _.each(tracks, (songComp) => {
-
-      // if (indexInSong > 0) {
-      //   throw new Error('Only 1 track for now is allowed.');
-      // }
-
       let song = new Song(songGlobalDat, songComp, indexInSong, songGlobalDat.manipParams);
 
       // for each phase on each track (each song)
       _.each(songComp, (phaseName) => {
         let
-          cnts = {},
-          phsTime = 0;
+          cnts = {};
 
         if (cnts[phaseName] === undefined) {
           cnts[phaseName] = 0;
@@ -61,17 +84,15 @@ class Inflator {
           cnts[phaseName]++;
         }
 
-        const
-          phase = songGlobalDat.phases[phaseName],
+        const phase = songGlobalDat.phases[phaseName],
           songDatForPhase = cloneForPhase(songGlobalDat),
-          inflated = this.inflatePhase(phase, indexInSong, songDatForPhase, phsTime);
+          inflated = this.inflatePhase(phase, indexInSong, songDatForPhase);
 
         song.addPhase(inflated.frases, phaseName, inflated.phraseParams);
       });
       trackContainer[indexInSong] = song.getTrack();
       indexInSong++;
     });
-
   }
 
   manipulateTracks () {
@@ -80,54 +101,29 @@ class Inflator {
     });
   }
 
-
   compileTrackEvents () {
     _.each(this.writeableTracks, (songTrack) => {
-      let writeableEvents = this._getWriteableEvents(songTrack);
-      this.eventTracks.push(writeableEvents);
+      let writeableEvents = this.makeWriteableEvents(songTrack);
+      this.songFile.pushEventTrack(writeableEvents);
     });
   }
 
   trackHooks () {
-    //here, run hooks designated for each track
+    // here, run hooks designated for each track
+    // _.each (this.songFile.eventTracks (eventTrack) . . . . .
   }
-
-  /**
-   * Extract phase data and in the process time it correctly
-   * with relation to other phases.
-   * Go through each Song (track) and get its writeable events into
-   * the file.
-   *
-   * @return {Object} Song class
-   */
-  saveMidi () {
-    this.model = this.getFileModel('first-measured');
-      let strumenti = [0x13, 0x51];
-    _.each(this.eventTracks, (writeableEvents, idx) => {
-      let track = this.getEmptyTrack();
-
-      track.setTempo(60);
-      // track.setInstrument(idx, strumenti[idx]);
-      this._midgenWriteEvents(writeableEvents, track);
-
-      this.model.addTrack(track);
-    });
-
-    this.saveModel(this.model);
-  }
-
 
   /**
    * Given some default parameters and phase-specific parameters, create a default-
    * timed phase instance (not yet going to be manipulated).
    *
-   * @param  {Object} phase     primary phase data (from JSON Song file, with a little massaging done)
-   * @param  {Number} index
-   * @param  {type} phaseSongDat description
-   * @param  {Number} phsTime      description
-   * @return {type}              description
+   * @param  {Object} phase         primary phase data (from JSON Song file, with a little massaging done)
+   * @param  {Number} index         index in song
+   * @param  {Object} phaseSongDat  phase data from JSON or DB
+   *
+   * @return {type}                 description
    */
-  inflatePhase (phase, index, phaseSongDat, phsTime) {
+  inflatePhase (phase, index, phaseSongDat) {
     const that = this,
       strKey = app.songAttributesKey;
 
@@ -142,7 +138,19 @@ class Inflator {
       phase.composition, phase[strKey].chords
     );
 
-    return that.inflateMeasures(phase, phsTime);
+    return that.inflateMeasures(phase);
+  }
+
+  /**
+   * Extract phase data and in the process time it correctly
+   * with relation to other phases.
+   * Go through each Song (track) and get its writeable events into
+   * the file.
+   *
+   * @return {Object} Song class
+   */
+  saveMidi () {
+    this.get('songFile').save();
   }
 
   /**
@@ -150,7 +158,7 @@ class Inflator {
    * Manipulators are introduced elsewhere.
    *
    */
-  inflateMeasures (phase, phaseTimeInSong) {
+  inflateMeasures (phase) {
     let completedFrases = [],
       elapsedMsrTime = 0,
       measureCntr = 0;
@@ -187,12 +195,14 @@ class Inflator {
         manipParams: phase.manipParams
       };
 
-    // This is the loop that goes.
-    // through each "composition" item for the phase (for this iteration/measure instance).
+    // This is the loop that goes
+    // through each "composition" item for the phase
+    // (for this iteration/measure instance).
     while (barCntr < phase.composition.length) {
       const bluePrint =
         this.getChordBlueprint(
           barCntr,
+          // chord composition for this phase
           phase.composition,
           phase[app.songAttributesKey].chords
         ),
@@ -211,11 +221,12 @@ class Inflator {
   }
 
   /**
-   * defaultFraseIndex - description
+   * Calculate a bar's index within the entire (default / before-Manipulator) phrase.
    *
    * @param  {Number} barIdx       This frase's index in the formative iteration
    * @param  {Number} measureIndex the iteration's index in the formative phase
    * @param  {Number} phaseLength  number of frases generically in the phase
+   *
    * @return {Number}              The index where this frase will fall within the
    *                               entire set of iterations (not just its own iteration)
    */
@@ -228,6 +239,7 @@ class Inflator {
       {
         notes: obj.notes,
         duration: obj.duration,
+        originalIndex: index,
         phaseDefaults,
         name: obj.name,
         noteDuration: obj.noteDuration
@@ -284,7 +296,6 @@ class Inflator {
   }
 
   getTimelessBar (parser1, chord) {
-    // measureChords = M
     let that = this,
       chordNoteList = this.getTonalNotes(
         chord
@@ -369,57 +380,11 @@ class Inflator {
     return rawChord;
   }
 
-  /**
-     * Return only the notes or events that are needed for the
-     * browser to play.
-     */
-  filterBrowserNotes (wriTracks) {
-
-    let
-      filteredOuter = [],
-      filterForBrowser = (writeableTrack) => {
-        const filtered = _.where(writeableTrack, {
-          'type': 'on'
-        }).map((nt) => {
-          return [
-            nt.note, nt.duration / secondsDivisor,
-            (nt.absoTime / secondsDivisor) + 3
-          ];
-        });
-        filteredOuter = filteredOuter.concat(filtered);
-      };
-
-    wriTracks.forEach(filterForBrowser);
-
-    return filteredOuter;
-  }
-
   set writeableEvents (arg) {
     _._.requireType(arg, ['Object', 'Null']);
     this._writeableEvents = arg;
   }
 
-  /**
-   * Get file model for storing notes
-   *
-   * @param  {String} name Name of the file
-   *
-   * @return {Object}      Model instance
-   */
-  getFileModel (name) {
-    return new Midi.File();
-  }
-
-  /**
-   * Get file model for storing notes
-   *
-   * @param  {String} name Name of the file
-   *
-   * @return {Object}      Model instance
-   */
-  getEmptyTrack (name) {
-    return new Midi.Track();
-  }
 
   /**
    * Get events that can be easily, accurately recorded to file
@@ -427,7 +392,7 @@ class Inflator {
    * @return {Array}  writeable (yet still relatively timed)
                       events for absolutizing
    */
-  _getWriteableEvents (songTrack) {
+  makeWriteableEvents (songTrack) {
     let totDelay = 0,
       eventsToWrite = [];
 
@@ -435,7 +400,7 @@ class Inflator {
       var referee = phase.referToFrases();
 
       _.each(referee, (fraseArr, fraseIdx) => {
-        console.log('frase idx ', fraseIdx);
+
         // for an entire bar:
         _.each(fraseArr.notes, (noteItm, noteIdx) => {
           var nDat = noteItm.note,
@@ -447,7 +412,6 @@ class Inflator {
             offEvt;
 
           if (noteIdx === 0) {
-
             totDelay = nDat['fraseStartTime'];
           }
 
@@ -482,45 +446,6 @@ class Inflator {
     });
     return eventsToWrite;
   }
-  /**
-   * Format notes for midgen writing
-   *
-   * @param  {Array}     eventsToWrite Events to write
-   * @param  {Object}    model         Model to which to write events
-   * @return {undefined}
-   */
-  _midgenWriteEvents (eventsToWrite, midiTrack) {
-    var eventsToWrite = _.sortBy(
-      eventsToWrite, 'absoTime'
-    );
-
-    // set midgTime
-    _.each(eventsToWrite, (evt, idx) => {
-      var isFirst = (idx === 0),
-        priorTime;
-
-      if (isFirst) {
-        evt.midgTime = evt.absoTime;
-      } else {
-        priorTime = eventsToWrite[idx - 1].absoTime;
-        // At this point, it is safe to do some rounding (and necc'y --
-        // otherwise floating-point arithmetic accumulates and throws off
-        // timing in the final product.
-        evt.midgTime = Math.round(evt.absoTime) - Math.round(priorTime);
-      }
-    });
-
-    _.each(
-      eventsToWrite, (evt, idx) => {
-        if (['on', 'off'].indexOf(evt.type) === -1) {
-          throw new Error('Event type "' + evt.type + '" not supported');
-        }
-
-        var fnName = evt.type === 'on' ? 'midgNoteOn' : 'midgNoteOff';
-        this[fnName](midiTrack, 0, evt.note, evt.midgTime);
-      }
-    );
-  }
 
   /**
    * Get a note that can be rendered
@@ -529,89 +454,14 @@ class Inflator {
    * @return {Object}      Note data renderable
    */
   renderableNote (nDat) {
-    return nDat.letter + nDat.acc + (nDat.oct).toString();
+    return nDat.letter + nDat.acc + nDat.oct.toString();
   }
 
-  midgNoteOn (midiTrack, channel, pitch, delay) {
-    pitch = pitch.toLowerCase();
-    if (delay === undefined) {
-      return midiTrack.addNoteOn(channel, pitch);
-    }
-    return midiTrack.addNoteOn(channel, pitch, delay);
-  }
-
-  midgNoteOff (midiTrack, channel, pitch, duration) {
-    pitch = pitch.toLowerCase();
-    if (duration !== undefined) {
-      return midiTrack.addNoteOff(channel, pitch, duration);
-    }
-    return midiTrack.addNoteOff(channel, pitch);
-  }
-
-  saveModel (model) {
-    this.makeOutputDir();
-
-    let fullFileName = this.fileName + '.' + this.ext,
-      fileExists = true,
-      iterator = 0,
-      suffix = '',
-      outFile;
-
-    while (fileExists || iterator < 1) {
-      if (iterator > 0) {
-        suffix = '-' + iterator;
-
-        fullFileName =
-          this.outputDir +
-          '/' +
-          this.fileName +
-              suffix +
-              '.' +
-              this.ext;
-      }
-
-      if (!this.pathExists(fullFileName)) {
-        fileExists = false;
-        this.fileName = fullFileName;
-      }
-      iterator++;
-    }
-    fs.writeFileSync(this.fileName, model.toBytes(), 'binary');
-    let link =  this.fileName.split('./public')[1];
-    this.set('outputLink', link);
-  }
-
-  pathExists (path) {
-    return fs.existsSync(path);
-  }
-
-  makeOutputDir () {
-    var oDir = this.get('outputDir');
-
-    if (!oDir) {
-      throw new Error('Could not obtain the outputDir property');
-    }
-
-    if (!this.pathExists(oDir)) {
-      fs.mkdirSync(oDir);
-      if (!this.pathExists(oDir)) {
-        throw new Error('Could not make output directory; ' + oDir);
-      }
-    }
-    return true;
-  }
-
-  /**
-   * Get the contents of the song bar by bar--for playing as
-   * opposed to saving to a file.
-   *
-   * @return {Array} Array of arrays, where each inner array has notes of a track.
-   */
   readBars () {
-    let brz = this.filterBrowserNotes(this.eventTracks);
-
-    return brz;
+    return this.songFile.getFilteredBars();
   }
+
+
 
   set (prop, val) {
     this[prop] = val;
@@ -619,6 +469,10 @@ class Inflator {
 
   get (prop) {
     return this[prop];
+  }
+
+  get outputLink () {
+    return this.songFile.get('outputLink');
   }
 }
 
@@ -655,4 +509,4 @@ function cloneForPhase (data1) {
   return _.omit(data1, (v, k) => { return k === 'phases'; });
 }
 
-export default Inflator;
+export default SongHandle;

@@ -12,20 +12,22 @@ class Frase {
    * Initialize the object
    *
    * @param  {Object}   parameters  Primary params
+   *
    * @return {Undefined}
    */
-  initialize (parameters) {
+  initialize (attribs) {
     // @todo: implement getters and setters evenly for such prop defs as follow.
-    this.notes = parameters.notes;
-    this.set('name', parameters.name);
-    this.setDuration(parameters.duration);
-    this.set('noteDuration', parameters.noteDuration);
+    this.notes = attribs.notes;
+    this.set('name', attribs.name);
+    this.setDuration(attribs.duration);
+    this.set('noteDuration', attribs.noteDuration);
+    this.set('originalIndex', attribs.originalIndex);
 
-    if (!parameters.phaseDefaults) {
+    if (!attribs.phaseDefaults) {
       throw new Error('Phase defaults are required.');
     }
 
-    this.set('phaseDefaults', parameters.phaseDefaults);
+    this.set('phaseDefaults', attribs.phaseDefaults);
     this.inflateNotes();
   }
 
@@ -36,10 +38,13 @@ class Frase {
    */
   clone () {
     return new Frase(
-      { notes: JSON.parse(JSON.stringify(this.notes)),
+      {
+        notes: JSON.parse(
+          JSON.stringify(this.notes)
+        ),
         name: this.name,
         duration: this.duration,
-        noteDuration: this.noteDuration, //not going through setter
+        noteDuration: this.noteDuration,
         phaseDefaults: this.phaseDefaults
       }
     );
@@ -65,7 +70,6 @@ class Frase {
 
   /**
    * Getter
-   * @todo: rewrite to use Es6 getter
    *
    * @param  {String}   propName    Name of property to get
    * @return {mixed}                Value at property
@@ -163,7 +167,8 @@ class Frase {
       'phaseDefaults',
       'phaseRelativeStartTime',
       'startTime',
-      'name'
+      'name',
+      'originalIndex'
     ];
   }
 
