@@ -1,15 +1,11 @@
+
+import FraseManipulator from './FraseManipulator.js';
+
 /**
  * Snazzify a frase ; add or remove notes for that frase, for example.
  *
  */
-import FraseManipulator from './FraseManipulator.js';
 class FraseChanger extends FraseManipulator {
-  constructor () {
-    super();
-    this.algos = [
-      'simple'
-    ];
-  }
 
   simple (rawNotes) {
     const cloned = this.clone(rawNotes),

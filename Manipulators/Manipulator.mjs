@@ -27,17 +27,12 @@ class Manipulator {
       cutDat.originalNt = nts[operation]();
       Object.freeze(cutDat.originalNt);
     });
-
     return paramsData;
   }
 
   set songData (sd) {
     if (!_.isArray(sd)) {
       throw new Error('Object is required');
-    }
-
-    if (!Object.isFrozen(sd)) {
-      throw new Error('Non-frozen objects disallowed');
     }
     this._songData = sd;
   }

@@ -1,6 +1,5 @@
 /**
- * Extendable class for altering phases of Songs
- *
+ * Extensible class for structural pieces of a song.
  */
 
 export default class Segment {

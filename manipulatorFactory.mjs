@@ -4,6 +4,7 @@ import PhaseManipulator from './Manipulators/PhaseManipulator.mjs';
 import FraseArpeggiator from './Manipulators/FraseArpeggiator.mjs';
 import FraseChanger from './Manipulators/FraseChanger.mjs';
 import FraseRootChanger from './Manipulators/FraseRootChanger.mjs';
+import FraseSnazzifier from './Manipulators/FraseSnazzifier.mjs';
 import FraseNoteChanger from './Manipulators/FraseNoteChanger.mjs';
 import FraseNoteRepeater from './Manipulators/FraseNoteRepeater.mjs';
 import Melody from './Manipulators/Melody.mjs';
@@ -29,6 +30,9 @@ function manipulatorFactory (className, fraseManipulatorName) {
 
   case 'FraseRootChanger':
     return new FraseRootChanger();
+
+  case 'FraseSnazzifier':
+    return new FraseSnazzifier();
 
   case 'FraseNoteChanger':
     return new FraseNoteChanger();

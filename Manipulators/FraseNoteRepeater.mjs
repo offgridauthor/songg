@@ -1,8 +1,10 @@
+
+import FraseManipulator from './FraseManipulator.mjs';
+
 /**
  * Add notes into a frase which will be a repetition of the specified note
  * already in the frase.
  */
-import FraseManipulator from './FraseManipulator.mjs';
 class FraseNoteRepeater extends FraseManipulator {
   constructor () {
     super();

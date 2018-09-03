@@ -1,9 +1,4 @@
-/**
- * Base class for altering phases of Songs.
- *
- * This is not an abstract class; this parent class is used as a default
- * for cases where no child is specified in external app logic or song file.
- */
+
 import Manipulator from './Manipulator.mjs';
 import manipulatorFactory from '../manipulatorFactory.mjs';
 

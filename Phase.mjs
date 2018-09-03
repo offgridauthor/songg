@@ -47,45 +47,11 @@ class Phase extends Segment {
     this.set('manipParams', phaseParams.manipParams);
     this.set('chords', phaseParams[app.songAttributesKey]['chords']);
   }
-
-  get (propName) {
-    if (this.allowedProps.indexOf(propName) === -1) {
-      throw new Error('Disallowed property name : ' + propName);
-    }
-    return this[propName];
-  }
-
-  set (propName, propVal) {
-    if (this.allowedProps.indexOf(propName) === -1) {
-      throw new Error('Disallowed property name: ' + propName);
-    }
-
-    if (propVal === undefined) {
-      this[propName] = null;
-    }
-    this[propName] = propVal;
-  }
-
+  /**
+   * Execute specified function on each of this.frases
+   */
   forEachFrase (fn) {
-    _.each(this.referToFrases(), fn);
-  }
-
-  referToFrases () {
-    return this.frases;
-  }
-
-  getImposedFraseLength () {
-    return this.imposedFraseLength;
-  }
-
-  getFirstNote () {
-    var fraseArray = this.referToFrases();
-
-    return fraseArray[0]['notes'][0];
-  }
-
-  getName () {
-    return this.get('name');
+    _.each(this.frases, fn);
   }
 
   /**
@@ -104,13 +70,12 @@ class Phase extends Segment {
    */
   hooks () {
     var
-      that = this,
       manipParams = this.get('manipParams');
 
     _.each(
       manipParams,
-      function (dat, nm) {
-        that.runManip(dat, nm);
+      (dat, nm) => {
+        this.runManip(dat, nm);
       }
     );
   }
@@ -119,8 +84,7 @@ class Phase extends Segment {
   * Run a manipulator on this phase
   */
   runManip (dat, nm) {
-    let parentClass = 'PhaseManipulator',
-      childFile = `./Manipulators/${nm}.mjs`,
+    let childFile = `./Manipulators/${nm}.mjs`,
       childFileExists = fs.existsSync(childFile),
       className, manip;
 
@@ -266,6 +230,9 @@ class Phase extends Segment {
     );
   }
 
+  /**
+   * Find a frase in this by index and name.
+   */
   findFraseByIndex (nm, idx) {
     let byName = this.fraseWhereNamed(nm);
     if (!byName || byName.length === 0) {
@@ -282,6 +249,9 @@ class Phase extends Segment {
     return false;
   }
 
+  /**
+   * Find all frases by the specified name.
+   */
   fraseWhereNamed (nm) {
     if (nm === 'ALL') {
       return this.frases;
@@ -313,6 +283,14 @@ class Phase extends Segment {
     this.set('duration', newLen);
   }
 
+  /**
+   * Laboratory for an insertAfter method in progress (for adding
+   * add-hoc frases during manipulation)
+   *
+   * @param  {Object}     referenceToElement Element in this phase instance AFTER WHICH to insert insertableElement
+   * @param  {Object}     insertableElement  Object to insert (Frase instance)
+   * @return {Undefined}
+   */
   testInsertAfter (referenceToElement, insertableElement) {
     let refIndex = this.frases.findIndex(
       (x) => {
@@ -324,6 +302,10 @@ class Phase extends Segment {
     this.insertFrase(refIndex + 1, insertableElement);
   }
 
+  /**
+   * Splace a frase into this.frases
+   *
+   */
   insertFrase (idx, fr) {
     // @todo: check inheritance chain; ensure arg is a frase
     this.frases.splice(idx, 0, fr);
@@ -354,6 +336,24 @@ class Phase extends Segment {
       'duration',
       'startTime'
     ];
+  }
+
+  get (propName) {
+    if (this.allowedProps.indexOf(propName) === -1) {
+      throw new Error('Disallowed property name : ' + propName);
+    }
+    return this[propName];
+  }
+
+  set (propName, propVal) {
+    if (this.allowedProps.indexOf(propName) === -1) {
+      throw new Error('Disallowed property name: ' + propName);
+    }
+
+    if (propVal === undefined) {
+      this[propName] = null;
+    }
+    this[propName] = propVal;
   }
 }
 

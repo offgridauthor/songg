@@ -1,10 +1,11 @@
+
+import PhaseManipulator from './PhaseManipulator.mjs';
+
 /**
  * This class (when finished) will insert a melody, a specialized frase that is not
  * in the composition. Base on its algorithm, it will insert it before or after the
  * specified query frase.
  */
-import PhaseManipulator from './PhaseManipulator.mjs';
-
 class Melody extends PhaseManipulator {
   /**
    * Melody overrides the parent class because its job is quite unique; it is never

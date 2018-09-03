@@ -1,17 +1,11 @@
+
+import FraseManipulator from './FraseManipulator.mjs';
+
 /**
  * For a single bar, temporally spread the notes according to the indicated
  * pattern.
  */
-
-import FraseManipulator from './FraseManipulator.mjs';
-
 class FraseArpeggiator extends FraseManipulator {
-  constructor () {
-    super();
-    this.algos = [
-      'simple'
-    ];
-  }
 
   /**
    * Taking the specified raw notes,

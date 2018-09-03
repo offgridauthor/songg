@@ -1,15 +1,14 @@
-/**
-  * Model class for a track within a Midi file.
-  *
-  **/
+
 import Segment from './Segment.mjs';
 import Phase from './Phase.mjs';
 
+/**
+  * Model class for a track within a Midi file.
+  **/
 class Track extends Segment {
   /**
-   * Backbone model defaults
+   * Build instance
    *
-   * @type {Object}
    */
   constructor (initProps, songComp, trackNumber, manipParams) {
     super();
@@ -40,7 +39,7 @@ class Track extends Segment {
    * @param  {Object} attribs Constructor attributes
    * @param  {Object} opts    Options (arguments, basically) for this function
    *
-   * @return void
+   * @return {undefined}
    */
   initialize (attribs, manipParams) {
     this.hist = [];
@@ -62,7 +61,6 @@ class Track extends Segment {
   addPhase (phase, nm, opts) {
     if (typeof phase === 'object') {
       _._.verifySongOpts(opts);
-
       let idx = Object.keys(this.phases).length,
         newPhs = new Phase(phase, nm, idx, opts);
       this.phases.push(newPhs);
@@ -144,7 +142,6 @@ class Track extends Segment {
 
   songHooks () {
     const that = this;
-    return;
     _.each(this.get('manipParams'), (manipDataList, manipName) => {
       that.runManipOnPhases(manipName, manipDataList);
     });
@@ -155,7 +152,6 @@ class Track extends Segment {
    */
   runManipOnPhases (manipName, manipDataList) {
     const that = this;
-
     // Right now, we have a property such as "Arpeggiator" from the song's
     // highest-level "manipParams" property; "Arpeggiator" (etc) is an Array
     // with multiple entries. (We are not running per-phase yet)
@@ -185,7 +181,7 @@ class Track extends Segment {
    *
    * @param  {Array} phaseList List of phases
    *
-   * @return {}
+   * @return {Array}
    */
   phaseMapForList (phaseList) {
     let all =

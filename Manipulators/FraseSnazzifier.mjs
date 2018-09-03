@@ -1,11 +1,16 @@
+
+import FraseManipulator from './FraseManipulator.mjs';
+
 /**
  * Within a speciried Frase, split the note into a couplet, triplet,
  * quadruplet, etc. Arrange the sliced pieces according to specified "scale",
  * which can be a scale from tonal.js or series of specified notes.
  */
-import FraseManipulator from './FraseManipulator.mjs';
-
 class FraseSnazzifier extends FraseManipulator {
+
+  /**
+   * Build instance
+   */
   constructor () {
     super();
     this.name = 'FraseSnazzifier';
@@ -17,14 +22,14 @@ class FraseSnazzifier extends FraseManipulator {
   /**
    * Beginning with the last, moving back to first, do the "snazzifying" (splitting
    * each note according to its respective data from the song composition file).
+   *
    * @param  {Array} rawNotes   A deep clone of notes.
-     * @return {Array}          Notes to replace Frase notes
+   * @return {Array}          Notes to replace Frase notes
    */
-  splitLast (rawNotes) {
-    const
-      // to be safe, clone the notes--though they are already
-      // cloned before passing in.
-      cloned = this.clone(rawNotes),
+  ['split-last'] (rawNotes) {
+    // to be safe, clone the notes--though they are already
+    // cloned before passing in.
+    const cloned = this.clone(rawNotes),
       nts = this.wrapNotes(cloned),
       precedentScales = this.getPrecedentScales(),
       dat = this.config;
@@ -81,23 +86,22 @@ class FraseSnazzifier extends FraseManipulator {
    * @return {Array}                 The array of notes resulting from cuts
    */
   splitNote (cuts, originalNt, precScalesInner, octLimits) {
-    const that = this,
-      returnArray = [],
+    const returnArray = [],
       applicableScale = this.findEffectiveScale(precScalesInner),
-      newLastNotes = that.defaultNotesArray(originalNt, cuts);
+      newLastNotes = this.defaultNotesArray(originalNt, cuts);
 
     _.each(newLastNotes,
       (nt, idx) => {
         // dur will always be the same
         nt.multiplyDuration(1 / (cuts + 1));
 
-        // for timing make it that of the "last" note (prior last note),
+        // for timing make it this of the "last" note (prior last note),
         // with idx * newDur added.durcool
         nt.relativeTime = originalNt.relativeTime + (idx * nt.duration);
         let changeBy = (cuts - idx);
 
         const tonalAdjustments =
-          that.calcSplitterAdjustments(
+          this.calcSplitterAdjustments(
             originalNt.letter,
             originalNt.oct,
             0 - changeBy,
@@ -105,7 +109,7 @@ class FraseSnazzifier extends FraseManipulator {
           ),
           tokenized =
           super.tonalNote().tokenize(
-            that.noteFromCustomScale(tonalAdjustments, applicableScale)
+            this.noteFromCustomScale(tonalAdjustments, applicableScale)
           );
 
         nt.letter = tokenized[0] + tokenized[1];
@@ -115,7 +119,7 @@ class FraseSnazzifier extends FraseManipulator {
         // This is causing an error by passing it all notes; dont
         // pass the whole array.
         if (octLimits) {
-          that.reinOctave(
+          this.reinOctave(
             originalNt.oct,
             octLimits,
             nt
@@ -143,14 +147,13 @@ class FraseSnazzifier extends FraseManipulator {
     const effectiveScale = this.findEffectiveScale(pScales),
       scaleLen = effectiveScale.notes.length;
 
-    let
-      ls = this.getStepFromScale(letter, effectiveScale.notes),
+    let ls = this.getStepFromScale(letter, effectiveScale.notes),
       soughtStepOperation,
       octChangeOp,
       soughtStep = ls + change,
-      octChange = 0; // 7
+      octChange = 0;
 
-    if (change <= 0) { // neg case
+    if (change <= 0) {
       soughtStepOperation = (ss) => { return ss + scaleLen; };
       octChangeOp = (oc) => { return oc - 1; };
     } else {
@@ -158,7 +161,7 @@ class FraseSnazzifier extends FraseManipulator {
       octChangeOp = (oc) => { return oc + 1; };
     }
 
-    while (undefined === effectiveScale.notes[soughtStep] && Math.abs(octChange) < 6) {
+    while (undefined === effectiveScale.notes[soughtStep] && Math.abs(octChange + lo) < 6) {
       soughtStep = soughtStepOperation(soughtStep);
       octChange = octChangeOp(octChange);
     }
@@ -167,17 +170,6 @@ class FraseSnazzifier extends FraseManipulator {
       step: soughtStep,
       oct: lo + octChange
     };
-  }
-
-  /**
-   * @deprecated used only for Snazzifier; discontinue.
-   * Convert the JSON prop name into a method name.
-   */
-  convertAlgoNm (algoNm) {
-    return {
-      'split-last': 'splitLast',
-      'add': 'add'
-    }[algoNm];
   }
 }
 

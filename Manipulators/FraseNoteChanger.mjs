@@ -1,11 +1,11 @@
+
+import FraseManipulator from './FraseManipulator.mjs';
+
 /**
  * Change the individual notes of an array in a basic fashion according to the
  * JSON specification for this manipulator's "data" array. That array has a
  * note for each entry.
  */
-
-import FraseManipulator from './FraseManipulator.mjs';
-
 class FraseNoteChanger extends FraseManipulator {
   constructor () {
     super();

@@ -1,9 +1,9 @@
-/**
- * Snazzify a frase ; add or remove notes for that frase, for example.
- */
 
 import FraseManipulator from './FraseManipulator.js';
 
+/**
+ * Snazzify a frase ; add or remove notes for that frase, for example.
+ */
 class FraseNoteChanger extends FraseManipulator {
   constructor () {
     super();

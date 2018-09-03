@@ -168,21 +168,6 @@
                     ]
                   }
                 ],
-                "Melody": [
-                  {
-                    "name": "odyssey",
-                    "timeUnit": "64",
-                    "notes": [
-                        { "note": "C4",
-                          "time": 1
-                        },
-                        {
-                          "note": "Db4",
-                          "time": 2
-                        }
-                    ]
-                  }
-                ],
                 "Snazzifier": [
                   {
                     "chord": "G",

@@ -1,12 +1,12 @@
+
+import PhaseManipulator from './PhaseManipulator.mjs';
+
 /**
  * Snazzify a frase from the perspective of a phase; for example, find a
  * frase by chord name and order within the phase, then add or remove notes
  * for that frase.
  *
  */
-
-import PhaseManipulator from './PhaseManipulator.mjs';
-
 class Snazzifier extends PhaseManipulator {
   constructor () {
     super();

@@ -3,7 +3,6 @@ import Song from './Song.mjs';
 import Frase from './Frase.mjs';
 import SongFile from './SongFile.mjs';
 import tonal from 'tonal';
-
 const Chord = tonal.Chord;
 
 /**
@@ -15,7 +14,6 @@ const Chord = tonal.Chord;
  *
  */
 class SongHandle {
-
   /**
    * Construct song; make JSON into a usable, live object, augmenting
    * theoretical data and distributing default timing (where "default"
@@ -23,29 +21,42 @@ class SongHandle {
    *
    * @param {Object} songDat parsed JSON file
    */
-  constructor (songDat) {
+  constructor (dat) {
+    this.sourceFile = dat.name;
+    this.rawSongDat = dat.contents;
+    this.initialize();
+  }
+
+  initialize () {
     let sf;
-    // each element is the iterated phase, e.g. aphrodite x 3 measures (iterations)
     this.writeableTracks = [];
-
-    // directory in which to save Midi
     this.outputDir = './public/outputMidi';
-
-    // name for file
-    this.fileName = songDat.name || 'nameless-song';
-
-    // Midi extension to use
+    this.fileName = this.rawSongDat.name || 'nameless-song';
     this.ext = 1;
-
     sf = new SongFile(
       this.fileName, this.outputDir
     );
-
     this.set('songFile', sf);
+    this.broswerResponse = null;
+  }
 
+  processSong () {
     // run main process
-    this.inflate(songDat);
-
+    this.inflate(this.rawSongDat);
+    // Run all manipulators
+    this.manipulateTracks();
+    // internally to song, strip out measures and phases , etc, leaving
+    // only arrays of note events.
+    this.compileTrackEvents();
+    // Run the hooks that are made for streams of events (track-holistic manipulators)
+    this.trackHooks();
+    // The midi file exporter or writer to export them
+    this.saveMidi();
+    // With file saved, respond with data.
+    this.browserResponse = {
+      'song': this.readBars(),
+      'midiLink': this.get('outputLink')
+    };
   }
 
   /**
@@ -57,17 +68,17 @@ class SongHandle {
    * @return {Object} Inflated song
    */
   inflate (songDat) {
-    console.log('inflating');
-    this.compose(songDat);
+    this.writeableTracks = SongHandle.compose(songDat);
   }
 
   /**
-   *
+   * Create the song
+   * @return {Array} that will become this.writeableTracks
    */
-  compose (songGlobalDat) {
+  static compose (songGlobalDat) {
     let tracks = songGlobalDat.composition,
       indexInSong = 0,
-      trackContainer = this.writeableTracks;
+      trackContainer = [];
 
     // For each track . . . a series of phase names from global data.
     _.each(tracks, (songComp) => {
@@ -85,25 +96,25 @@ class SongHandle {
         }
 
         const phase = songGlobalDat.phases[phaseName],
-          songDatForPhase = cloneForPhase(songGlobalDat),
-          inflated = this.inflatePhase(phase, indexInSong, songDatForPhase);
-
+          songDatForPhase = SongHandle.cloneForPhase(songGlobalDat),
+          inflated = SongHandle.inflatePhase(phase, indexInSong, songDatForPhase);
         song.addPhase(inflated.frases, phaseName, inflated.phraseParams);
       });
       trackContainer[indexInSong] = song.getTrack();
       indexInSong++;
     });
+    return trackContainer;
   }
 
   manipulateTracks () {
-    _.each (this.writeableTracks, (someSong) => {
+    _.each(this.writeableTracks, (someSong) => {
       someSong.runHooks();
     });
   }
 
   compileTrackEvents () {
     _.each(this.writeableTracks, (songTrack) => {
-      let writeableEvents = this.makeWriteableEvents(songTrack);
+      let writeableEvents = SongHandle.makeWriteableEvents(songTrack);
       this.songFile.pushEventTrack(writeableEvents);
     });
   }
@@ -111,34 +122,6 @@ class SongHandle {
   trackHooks () {
     // here, run hooks designated for each track
     // _.each (this.songFile.eventTracks (eventTrack) . . . . .
-  }
-
-  /**
-   * Given some default parameters and phase-specific parameters, create a default-
-   * timed phase instance (not yet going to be manipulated).
-   *
-   * @param  {Object} phase         primary phase data (from JSON Song file, with a little massaging done)
-   * @param  {Number} index         index in song
-   * @param  {Object} phaseSongDat  phase data from JSON or DB
-   *
-   * @return {type}                 description
-   */
-  inflatePhase (phase, index, phaseSongDat) {
-    const that = this,
-      strKey = app.songAttributesKey;
-
-    phase[strKey] = phaseSongDat;
-
-    _._.verifySongOpts(phase);
-
-    // @todo: freeze here may be redundant with freeze of "dat" in calling func.
-    Object.freeze(phase[strKey].chords);
-
-    this.validateChordNames(
-      phase.composition, phase[strKey].chords
-    );
-
-    return that.inflateMeasures(phase);
   }
 
   /**
@@ -154,11 +137,35 @@ class SongHandle {
   }
 
   /**
+   * Given some default parameters and phase-specific parameters, create a default-
+   * timed phase instance (not yet going to be manipulated).
+   *
+   * @param  {Object} phase         primary phase data (from JSON Song file, with a little massaging done)
+   * @param  {Number} index         index in song
+   * @param  {Object} phaseSongDat  phase data from JSON or DB
+   *
+   * @return {type}                 description
+   */
+  static inflatePhase (phase, index, phaseSongDat) {
+    const strKey = app.songAttributesKey;
+
+    phase[strKey] = phaseSongDat;
+
+    _._.verifySongOpts(phase);
+
+    SongHandle.validateChordNames(
+      phase.composition, phase[strKey].chords
+    );
+
+    return SongHandle.inflateMeasures(phase);
+  }
+
+  /**
    * Method that conducts a basic construction according to the blueprint data.
    * Manipulators are introduced elsewhere.
    *
    */
-  inflateMeasures (phase) {
+  static inflateMeasures (phase) {
     let completedFrases = [],
       elapsedMsrTime = 0,
       measureCntr = 0;
@@ -166,7 +173,7 @@ class SongHandle {
     // We are within a phase; and this is the loop for the number of iterations
     // of a specific phase.
     while (measureCntr < phase.measureCount) {
-      let measureIteration = this.inflateMeasure(measureCntr, phase);
+      let measureIteration = SongHandle.inflateMeasure(measureCntr, phase);
 
       // Totting up the overall phrases as measures (or iterations) get inflated...
       completedFrases = completedFrases.concat(measureIteration.frases);
@@ -185,10 +192,9 @@ class SongHandle {
    * Each phase has 1+ iterations; this creates an iteration of that kind,
    *  aka "measure" in some places.
    */
-  inflateMeasure (measureCntr, phase) {
+  static inflateMeasure (measureCntr, phase) {
     let barCntr = 0,
       inflatedBars = [],
-      that = this,
       fraseDefaults = {
         imposedLength: phase.imposedFraseLength,
         noteDuration: phase.noteDuration,
@@ -200,16 +206,16 @@ class SongHandle {
     // (for this iteration/measure instance).
     while (barCntr < phase.composition.length) {
       const bluePrint =
-        this.getChordBlueprint(
+        SongHandle.getChordBlueprint(
           barCntr,
           // chord composition for this phase
           phase.composition,
           phase[app.songAttributesKey].chords
         ),
-        barToAdd = this.inflateBar(bluePrint);
+        barToAdd = SongHandle.inflateBar(bluePrint);
 
-      let indexInPhase = this.defaultFraseIndex(barCntr, phase.composition.length, measureCntr),
-        newFr = that.fraseFromParams(barToAdd, indexInPhase, fraseDefaults, measureCntr);
+      let indexInPhase = SongHandle.defaultFraseIndex(barCntr, phase.composition.length, measureCntr),
+        newFr = SongHandle.fraseFromParams(barToAdd, indexInPhase, fraseDefaults, measureCntr);
 
       inflatedBars.push(newFr);
       barCntr++;
@@ -220,38 +226,8 @@ class SongHandle {
     };
   }
 
-  /**
-   * Calculate a bar's index within the entire (default / before-Manipulator) phrase.
-   *
-   * @param  {Number} barIdx       This frase's index in the formative iteration
-   * @param  {Number} measureIndex the iteration's index in the formative phase
-   * @param  {Number} phaseLength  number of frases generically in the phase
-   *
-   * @return {Number}              The index where this frase will fall within the
-   *                               entire set of iterations (not just its own iteration)
-   */
-  defaultFraseIndex (barIdx, measureIndex, phaseLength) {
-    return barIdx + (phaseLength * measureIndex);
-  }
-
-  fraseFromParams (obj, index, phaseDefaults, measureCntr) {
-    let frParams =
-      {
-        notes: obj.notes,
-        duration: obj.duration,
-        originalIndex: index,
-        phaseDefaults,
-        name: obj.name,
-        noteDuration: obj.noteDuration
-      },
-      fr;
-
-    fr = new Frase(frParams);
-    return fr;
-  }
-
-  getChordBlueprint (idx, measureChords, chords) {
-    const chordDat = this.chordDat(measureChords[idx]),
+  static getChordBlueprint (idx, measureChords, chords) {
+    const chordDat = SongHandle.chordDat(measureChords[idx]),
       chordNm = chordDat.name,
       composedChord = _.findWhere(chords, {name: chordNm}),
       chordConfig = _.extend(composedChord, chordDat);
@@ -264,40 +240,19 @@ class SongHandle {
    * Return a bar with the default timing (i.e., timing derived from phase and without
    * any minipulation yet).
    **/
-  inflateBar (composedChord) {
-    const that = this,
-      timelessNoteArr = this.getTimelessBar(parser, composedChord),
-      timedArr = that.addBarOffsets(timelessNoteArr);
+  static inflateBar (composedChord) {
+    const timelessNoteArr = SongHandle.getTimelessBar(parser, composedChord),
+      timedArr = SongHandle.addBarOffsets(timelessNoteArr);
     composedChord.notes = timedArr;
 
     return composedChord;
     // at this point, the "bar" (timedToBar) has information on it about its
     // time within the phase, and also time about its own internal notes'
     // timings. Those are combined at a later stage.
-    // There are two ways that timing is finalized, relative time and
-    // absolute time. Both are used because the player requires one and
-    // the midi file writer requires the other.
   }
 
-  chordDat (crd) {
-    var retData = {
-      'name': null
-    };
-
-    if (typeof crd === 'string') {
-      retData.name = crd;
-    }
-
-    if (typeof crd === 'object') {
-      retData = crd;
-    }
-
-    return retData;
-  }
-
-  getTimelessBar (parser1, chord) {
-    let that = this,
-      chordNoteList = this.getTonalNotes(
+  static getTimelessBar (parser1, chord) {
+    let chordNoteList = SongHandle.getTonalNotes(
         chord
       ),
       timeless = [];
@@ -307,33 +262,10 @@ class SongHandle {
        * Given name of a single note, create those as tonal-formatted
        * note objects. These are collected in timless.
        */
-      var timelessNote1 = that.timelessNote(itm, parser1);
+      var timelessNote1 = SongHandle.timelessNote(itm, parser1);
       timeless.push(timelessNote1);
     });
     return timeless;
-  }
-
-  /**
-   * Given an array of note names and arpegLib from song's json, makes midi
-   * data in a format consumable by the player, MIDI.js.
-   *
-   * @param  {Array} nts List of note names
-   * @param  {Object} params POJO; structure example:
-    *    {
-    *      pl: { //object from arpeg lib
-          "offset": 0,
-          "arr": [0.2, 0.2, 0.2, 0.2, 0.2]
-    *    }
-    *
-    * }
-    * @return {Object}
-   */
-  timelessNote (ntNm, prs) {
-    var pc = prs.parse(ntNm);
-    pc.phaseStart = null;
-    pc.strumTime = null;
-    pc.delay = null;
-    return pc;
   }
 
   /**
@@ -342,24 +274,24 @@ class SongHandle {
    * later to be used as the base for adding time to individual
    * notes within the bar.
    *
-   * @param {Array}  bar        THe bar of notes
+   * @param {Array}  bar        The bar (to be frase) of notes
    * @param {Number} absoTime   Bar's timed placement within the phase
    * @param {Number} tweenNotes Time between notes to be used in writing midi, Later
    * @param {Number} midiDur    How long the key(s) is/are pressed, so to speak; length of note or notes
    */
-  addBarOffsets (bar, midiDur) {
-    var barFormatted = formatBar(bar),
-      withRelativeTimes = addRelBarTimes(barFormatted, midiDur);
+  static addBarOffsets (bar, midiDur) {
+    var barFormatted = SongHandle.formatBar(bar),
+      withRelativeTimes = SongHandle.addRelBarTimes(barFormatted, midiDur);
 
     return withRelativeTimes;
   }
 
-  validateChordNames (cordz, songChords) {
+  static validateChordNames (cordz, songChords) {
     var invalidCordz = [];
 
     // for each chord from left arg....
     cordz.forEach((cordzItm, cordzIdx) => {
-      var chordInfo = this.chordDat(cordzItm),
+      var chordInfo = SongHandle.chordDat(cordzItm),
         crdDat = _.where(songChords, {name: chordInfo.name});
 
       if (crdDat.length <= 0) {
@@ -372,7 +304,7 @@ class SongHandle {
     }
   }
 
-  getTonalNotes (chordLibDat) {
+  static getTonalNotes (chordLibDat) {
     var chordName = chordLibDat.chord,
       oct = chordLibDat.octave,
       rawChord = Chord.notes(oct, chordName);
@@ -380,27 +312,19 @@ class SongHandle {
     return rawChord;
   }
 
-  set writeableEvents (arg) {
-    _._.requireType(arg, ['Object', 'Null']);
-    this._writeableEvents = arg;
-  }
-
-
   /**
    * Get events that can be easily, accurately recorded to file
    *
    * @return {Array}  writeable (yet still relatively timed)
                       events for absolutizing
    */
-  makeWriteableEvents (songTrack) {
+  static makeWriteableEvents (songTrack) {
     let totDelay = 0,
       eventsToWrite = [];
 
     _.each(songTrack.phases, (phase) => {
-      var referee = phase.referToFrases();
-
+      var referee = phase.frases;
       _.each(referee, (fraseArr, fraseIdx) => {
-
         // for an entire bar:
         _.each(fraseArr.notes, (noteItm, noteIdx) => {
           var nDat = noteItm.note,
@@ -416,7 +340,7 @@ class SongHandle {
           }
 
           delay = nDat['relativeTime'] || 0;
-          renderableNote = this.renderableNote(nDat);
+          renderableNote = SongHandle.renderableNote(nDat);
           // relativeTime is needed for note on
 
           // treated now as a delay since previous start
@@ -453,15 +377,121 @@ class SongHandle {
    * @param  {Object} nDat Note data
    * @return {Object}      Note data renderable
    */
-  renderableNote (nDat) {
+  static renderableNote (nDat) {
     return nDat.letter + nDat.acc + nDat.oct.toString();
+  }
+
+  /**
+   * Given an array of note names and arpegLib from song's json, makes midi
+   * data in a format consumable by the player, MIDI.js.
+   *
+   * @param  {Array} nts List of note names
+   * @param  {Object} params POJO; structure example:
+    *    {
+    *      pl: { //object from arpeg lib
+          "offset": 0,
+          "arr": [0.2, 0.2, 0.2, 0.2, 0.2]
+    *    }
+    *
+    * }
+    * @return {Object}
+   */
+  static timelessNote (ntNm, prs) {
+    var pc = prs.parse(ntNm);
+    pc.phaseStart = null;
+    pc.strumTime = null;
+    pc.delay = null;
+    return pc;
+  }
+
+  /**
+   * Calculate a bar's index within the entire (default / before-Manipulator) phrase.
+   *
+   * @param  {Number} barIdx       This frase's index in the formative iteration
+   * @param  {Number} measureIndex the iteration's index in the formative phase
+   * @param  {Number} phaseLength  number of frases generically in the phase
+   *
+   * @return {Number}              The index where this frase will fall within the
+   *                               entire set of iterations (not just its own iteration)
+   */
+  static defaultFraseIndex (barIdx, measureIndex, phaseLength) {
+    return barIdx + (phaseLength * measureIndex);
+  }
+
+  static fraseFromParams (obj, index, phaseDefaults, measureCntr) {
+    let frParams =
+      {
+        notes: obj.notes,
+        duration: obj.duration,
+        originalIndex: index,
+        phaseDefaults,
+        name: obj.name,
+        noteDuration: obj.noteDuration
+      },
+      fr;
+
+    fr = new Frase(frParams);
+    return fr;
+  }
+
+  static chordDat (crd) {
+    var retData = {
+      'name': null
+    };
+
+    if (typeof crd === 'string') {
+      retData.name = crd;
+    }
+
+    if (typeof crd === 'object') {
+      retData = crd;
+    }
+
+    return retData;
+  }
+
+  static addRelBarTimes (bar123, dur) {
+    var newBar = [];
+    bar123.forEach(
+      (obj) => {
+        var offsettable = obj.note;
+        newBar.push({'note': offsettable});
+      }
+    );
+    return newBar;
+  }
+
+  /**
+    Simply reformats that bar's notes in a simple way.
+    (adds it as property "note" to itself)
+  */
+  static formatBar (bar1) {
+    _.each(
+      bar1,
+      (offsetItm1, idx) => {
+        bar1[idx] = {note: offsetItm1};
+      }
+    );
+    return bar1;
+  }
+
+  /**
+   * Deep clone data, erasing clone's copy to proper scope.
+   *
+   */
+  static cloneForPhase (data1) {
+    return _.omit(data1, (v, k) => { return k === 'phases'; });
+  }
+
+  // - - - - -  getters and setters - - - - -
+  set writeableEvents (arg) {
+    _._.requireType(arg, ['Object', 'Null']);
+    this._writeableEvents = arg;
   }
 
   readBars () {
     return this.songFile.getFilteredBars();
   }
-
-
 
   set (prop, val) {
     this[prop] = val;
@@ -474,39 +504,6 @@ class SongHandle {
   get outputLink () {
     return this.songFile.get('outputLink');
   }
-}
-
-function addRelBarTimes (bar123, dur) {
-  var newBar = [];
-  bar123.forEach(
-    (obj) => {
-      var offsettable = obj.note;
-      newBar.push({'note': offsettable});
-    }
-  );
-  return newBar;
-}
-
-/**
-  Simply reformats that bar's notes in a simple way.
-  (adds it as property "note" to itself)
-*/
-function formatBar (bar1) {
-  _.each(
-    bar1,
-    (offsetItm1, idx) => {
-      bar1[idx] = {note: offsetItm1};
-    }
-  );
-  return bar1;
-}
-
-/**
- * Deep clone data, erasing clone's copy to proper scope.
- *
- */
-function cloneForPhase (data1) {
-  return _.omit(data1, (v, k) => { return k === 'phases'; });
 }
 
 export default SongHandle;

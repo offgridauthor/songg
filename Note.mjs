@@ -1,35 +1,28 @@
-import tonal from 'tonal';
-
-const tonalNote = tonal.note;
+import tonalNote from 'tonal-note';
 
 /**
- * Constructs instance of object with class Note
- *
- * @todo:
- * Importantly, this.ntAttrs is a reference to a set of notes
- * in a song somewhere.
- *
- * @param  {Object} atrs Reference to a set of attributes in
- *                       a song that make up a single note.
- *
- * @return {undefined}
+ * Wrapper class for a note (array of note attributes)
  */
 class Note {
+  /**
+   * Constructs instance of object with class Note
+   *
+   * @param  {Object} atrs Reference to a set of attributes in
+   *                       a song that make up a single note.
+   *
+   * @return {undefined}
+   */
   constructor (atrs) {
     this.ntAttrs = atrs.note;
   }
 
-  clone () {
-    let clonedAttribs = this.getNoteAttribs();
-    return new Note({note: clonedAttribs});
+  compile () {
+    let newAttrs = tonalNote.props(this.letter + this.oct);
+    this.ntAttrs = _.extend(this.ntAttrs, newAttrs);
   }
 
   multiplyDuration (multiplicand) {
     this.duration = this.duration * multiplicand;
-  }
-
-  raiseOctBy (raiseBy) {
-    this.oct = this.oct + 1;
   }
 
   getValidTokens (lwo) {
@@ -45,7 +38,7 @@ class Note {
 
   getTokens (letterPossibleOctave) {
     return tonalNote.tokenize(letterPossibleOctave);
-  };
+  }
 
   /**
    * Set the letter of this note.
@@ -134,6 +127,11 @@ class Note {
 
   get relativeTime () {
     return this.ntAttrs.relativeTime;
+  }
+
+  clone () {
+    let clonedAttribs = this.getNoteAttribs();
+    return new Note({note: clonedAttribs});
   }
 }
 

@@ -1,18 +1,16 @@
-/**
- * Snazzify a frase ; add or remove notes for that frase, for example.
- */
 
 import FraseManipulator from './FraseManipulator.mjs';
 
+/**
+ * Snazzify a frase ; add or remove notes for that frase, for example.
+ */
 class FraseRootChanger extends FraseManipulator {
   constructor () {
     super();
     this.name = 'FraseRootChanger';
   }
 
-  /**
-   *
-   */
+
   simple (rawNotes) {
     const cloned = this.clone(rawNotes),
       nts = this.wrapNotes(cloned);
@@ -30,7 +28,6 @@ class FraseRootChanger extends FraseManipulator {
    */
   alterFrase (fr) {
     let fr2 = fr.clone();
-    // fr2.setDuration(fr.getDuration() * 2);
     return fr2;
   }
 }

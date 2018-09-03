@@ -1,15 +1,14 @@
-/**
- * Snazzify a frase ; add or remove notes for that frase, for example.
- * In effect this is an abstract class, though not yet syntactically enforced
- * that way.
- */
-
 import Manipulator from './Manipulator.mjs';
 import Note from '../Note.mjs';
 import tonalNote from 'tonal-note';
 import tonalScale from 'tonal-scale';
 import tonalChord from 'tonal-chord';
 
+/**
+ * Snazzify a frase ; add or remove notes for that frase, for example.
+ * In effect this is an abstract class, though not yet syntactically enforced
+ * that way.
+ */
 class FraseManipulator extends Manipulator {
   /**
    * Build instance
@@ -54,8 +53,7 @@ class FraseManipulator extends Manipulator {
   }
 
   /** Given scales arranged in order of precedence, return the first that is
-    useful.
-
+    useful (as in the future, this determination may be more intelligent).
    */
   findEffectiveScale (scales) {
     return _.find(

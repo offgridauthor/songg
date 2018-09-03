@@ -12,7 +12,6 @@ const secondsDivisor = 256,
  * Create a jsMidgen Midi entity from passed-in data.
  */
 class SongFile {
-
   /**
    * Set up song file for midi save.
    *
