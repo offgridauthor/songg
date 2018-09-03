@@ -1,0 +1,188 @@
+{
+  "name": "Example-1b",
+  "composer": "Davo",
+  "manipParams": {
+
+  },
+    "chords": [
+        {
+            "name": "Em",
+            "chord": "m",
+            "octave": "E4"
+        },
+        {
+            "name": "Em3",
+            "chord": "m",
+            "octave": "E3"
+        },
+        {
+            "name": "Em5",
+            "chord": "m",
+            "octave": "E5"
+        },
+        {
+            "name": "Dm",
+            "chord": "m",
+            "octave": "D4"
+        },
+        {
+            "name": "Dm3",
+            "chord": "m",
+            "octave": "D3"
+        },
+        {
+            "name": "Dm5",
+            "chord": "m",
+            "octave": "D5"
+        },
+        {
+            "name": "Am3",
+            "chord": "m",
+            "octave": "A3"
+        },
+        {
+            "name": "Am5",
+            "chord": "m",
+            "octave": "A5"
+        },
+        {
+            "name": "F",
+            "chord": "M",
+            "octave": "F4"
+        },
+        {
+            "name": "FMaj7",
+            "chord": "Maj7",
+            "octave": "F4"
+        },
+        {
+          "name": "CMaj7",
+          "chord": "Maj7",
+          "octave": "C4"
+        },
+        {
+          "name": "C13",
+          "chord": "M13",
+          "octave": "C4"
+        },
+        {
+          "name": "Em7",
+          "chord": "m7",
+          "octave": "E4"
+        },
+        {
+          "name": "C",
+          "chord": "M",
+          "octave": "C4"
+        },
+        {
+            "name": "Dm7",
+            "chord": "m7",
+            "octave": "D4"
+        },
+        {
+          "name": "Bo",
+          "chord": "o",
+          "octave": "B4"
+        },
+        {
+          "name": "Am",
+          "chord": "m",
+          "octave": "A4"
+        },
+        {
+          "name": "Am2",
+          "chord": "m",
+          "octave": "A2"
+        },
+        {
+            "name": "Em9",
+            "chord": "m9",
+            "octave": "E4"
+        },
+        {
+          "name": "Dmadd9",
+          "chord": "madd9",
+          "octave": "D4"
+        },
+        {
+          "name": "Do",
+          "chord": "o",
+          "octave": "D4"
+        },
+        {
+          "name": "G",
+          "chord": "M",
+          "octave": "G4"
+        },
+        {
+          "name": "G3",
+          "chord": "M",
+          "octave": "G3"
+        },
+        {
+          "name": "G7",
+          "chord": "7",
+          "octave": "G4"
+        },
+        {
+          "name": "G-repeat",
+          "chord": "M",
+          "octave": "G4"
+        },
+        {
+          "name": "Co",
+          "chord": "o",
+          "octave": "C4"
+        },
+        {
+          "name": "Ebo",
+          "chord": "o",
+          "octave": "Eb4"
+        },
+        {
+          "name": "D",
+          "chord": "M",
+          "octave": "D4"
+        }
+    ],
+    "composition" : [["helen"], ["paris"]],
+    "phases": {
+        "helen" : {
+          "measureCount": 5,
+          "composition": [
+            {
+              "name": "Am3"
+            },
+            "Am", "Em3", "Em", "Am3", "Am", "Em3", "Em", "Dm3", "Dm", "Am3", "Am","Am5"
+          ],
+          "noteDuration": 85.3,
+          "imposedFraseLength": 256,
+          "manipParams": {
+            "Arpeggiator": [
+              {
+                  "data": [0, 85.3, 170.67, 256 ]
+              }
+            ]
+          }
+        },
+        "paris" : {
+          "measureCount": 5,
+          "composition": [
+              {
+                "name": "Am3"
+              }, "Am","Am",
+              "Am", "Em3", "Em", "Am3", "Am", "Em3", "Em", "Dm3", "Dm", "Am3", "Am","Am5"
+            ],
+            "noteDuration": 85,
+            "imposedFraseLength": 128,
+            "manipParams": {
+              "Arpeggiator": [
+                {
+                    "data": [0, 85, 170, 256 ]
+                }
+              ]
+            }
+        }
+    }
+}

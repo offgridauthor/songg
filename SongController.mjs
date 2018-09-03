@@ -16,7 +16,7 @@ class SongController {
       sh = new SongHandle(data);
 
     sh.processSong();
-    let augmentedResponse = _.extend(sh.browserResponse, {files: fileList});
+    let augmentedResponse = _.extend(sh.browserResponse, {files: fileList, composer: data.composer});
     response.write(JSON.stringify(augmentedResponse));
     response.send();
   }
@@ -27,7 +27,8 @@ class SongController {
       ),
       fileName,
       query,
-      dat;
+      dat,
+      parsed;
 
     query = urlParts.query;
     fileName = query.fileName;
@@ -41,10 +42,12 @@ class SongController {
     SongController.requireExistentFile(fileName);
 
     dat = fs.readFileSync(`./Songs/${fileName}`).toString();
+    parsed = JSON.parse(dat);
 
     return {
       name: fileName,
-      contents: JSON.parse(dat),
+      contents: parsed,
+      composer: parsed.composer || '',
       files: JSON.parse(JSON.stringify(fileList))
     };
   }

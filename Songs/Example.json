@@ -1,5 +1,6 @@
 {
   "name": "Example",
+  "composer": "Davo",
   "manipParams": {
     "Arpeggiator": [
       {
@@ -134,9 +135,6 @@
             {
                 "name": "CMaj7",
                 "Arpeggiator": [0, 40, 70, 90],
-                "Snazzifier": {
-                  "remark": "note that for now, local config breaks with phase-based config"
-                },
                 "duration": 800,
                 "noteDuration": 800
             },
