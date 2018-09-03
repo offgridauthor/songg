@@ -6,8 +6,6 @@ Songs/unpublished
 nbproject
 node_modules
 lib
-public/soundfont
-public/music-libs
 .gitignore
-public/libs/*
+public
 Songs/Unnamed.json
