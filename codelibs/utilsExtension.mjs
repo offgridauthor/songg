@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   /**
    * Find and return an object; include its index
    * as a property (index in the array in

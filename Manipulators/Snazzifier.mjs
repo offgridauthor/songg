@@ -5,7 +5,7 @@
  *
  */
 
-import PhaseManipulator from './PhaseManipulator.js';
+import PhaseManipulator from './PhaseManipulator.mjs';
 
 class Snazzifier extends PhaseManipulator {
   constructor () {
@@ -20,4 +20,4 @@ class Snazzifier extends PhaseManipulator {
   }
 }
 
-module.exports = Snazzifier;
+export default Snazzifier;

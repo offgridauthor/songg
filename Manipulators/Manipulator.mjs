@@ -1,6 +1,4 @@
 // Base class for a manipulator
-import Note from '../Note.js';
-
 class Manipulator {
   /**
    * This method couples data from the song file (for the
@@ -48,6 +46,12 @@ class Manipulator {
     return this._songData;
   }
 
+  /**
+   * These aliases are really vestigial of earlier phases of development;
+   * may be redundant with the es6 stuff above.
+   */
+
+  // - - - - - song data getter and setter - - - - - - - -
   setSongData (songDat) {
     this.songData = songDat;
   }
@@ -59,22 +63,6 @@ class Manipulator {
   clone (µ) {
     return JSON.parse(JSON.stringify(µ));
   }
-
-  wrapNotes (ntsArray) {
-    return _.map(ntsArray, (nt) => { return new Note(nt); });
-  }
-
-  unwrapNotes (ntsArray) {
-    return _.map(ntsArray, (ntObj) => { return { note: ntObj.ntAttrs }; });
-  }
-
-  set name (nm) {
-    throw new Error('Name is read-only for Manipulators.');
-  }
-
-  get name () {
-    return this.constructor.name;
-  }
 }
 
-module.exports = Manipulator;
+export default Manipulator;

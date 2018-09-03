@@ -1,16 +1,31 @@
 /**
- * Extendable class for altering phases of Songs
+ * Base class for altering phases of Songs.
+ *
+ * This is not an abstract class; this parent class is used as a default
+ * for cases where no child is specified in external app logic or song file.
  */
-import Manipulator from './Manipulator.js';
-import fs from 'fs';
+import Manipulator from './Manipulator.mjs';
+import manipulatorFactory from '../manipulatorFactory.mjs';
 
 /**
- * Instatiable class for manipulating phases.
+ * Instantiable class for manipulating phases.
+ * Provided a query (the "name" and "location" items fron the song data) and a
+ * algo name (which defaults to "simple"), this class applies that manipulator
+ * to the queried frases.
+ *
+ * An important note is that the base class runs as a default class. For example,
+ * "Arpeggiator" will be called in the app logic (external; not in this file).
+ * There is a "FraseArpeggiator" but no Phase arpeggiator. Therefore, a PhaseManipulator instance is created and the default work
+ * is used. (Note that although FraseManipulators are prefixed with "Frase" automatically, PhaseManipulators are not prefixed
+ * with Phase; so the phase Arpeggiator would just be called "Arpeggiator", a la Melody and Snazzifier).
+ *
+ * Snazzifier and Melody are examples of PhaseManipulators, and have their own respective
+ * methods for controlling the application of their respective FraseManipulator child class
+ * instances.
  */
 class PhaseManipulator extends Manipulator {
   constructor (manipName) {
     super();
-    this.name = 'PhaseManipulator';
 
     // override this with something more specific in the child classes, probably.
     // or, it can be used to cut directly to frase manipulators
@@ -19,6 +34,27 @@ class PhaseManipulator extends Manipulator {
     if (typeof (manipName) === 'string') {
       this.manipName = 'Frase' + manipName;
     }
+  }
+  /**
+   * Apply manipulation across phase, upon frases according to the
+   * chord name and location query.
+   * (i.e., locate the frases and then apply the logic of this class's
+   * associated frase manipulator).
+   *
+   * @param  {Array}  dat   Dat from the specified phs
+   *
+   * @return {undefined} method operates in-place
+   */
+  go (dat) {
+    this.setSongData(this.phase.get('chords'));
+
+    // one FraseManipulator subclass will be called per "asset"
+    // In the phase, "dat" originate as an array prop such as
+    // manipParms.Snazzifier or manipParams.NoteRepeater.
+    _.each(dat, (assets) => {
+      // one FraseManipulator instantiation, coming up.
+      this.findAndManipulate(assets);
+    });
   }
 
   /**
@@ -48,34 +84,10 @@ class PhaseManipulator extends Manipulator {
   }
 
   /**
-   * Apply Snazzification.
-   *
-   * Locate the bar within the phase.
-   * Use its data to add and remove notes.
-   *
-   * @param  {Array}  dat   Dat from the specified phs
-   *
-   * @return {undefined}
-   */
-  go (dat) {
-    const that = this;
-    this.setSongData(this.phase.get('chords'));
-    // one FraseManipulator subclass will be called per "asset"
-    // In the phase, "dat" originate as an array prop such as
-    // manipParms.Snazzifier or manipParams.NoteRepeater.
-    _.each(dat, (assets) => {
-      // one FraseManipulator instantiation, coming up.
-      that.findAndManipulate.call(this, assets);
-    });
-  }
-
-  /**
    * Manipulate a frase (having isolated one for alteration)
    *
    */
   manipulateFrase (fr, dat) {
-    this.requireValidFraseManipulator(this.manipName);
-
     const manipInstance = this.getFraseManipInstance(this.manipName);
 
     // Carry out manipulations
@@ -97,21 +109,9 @@ class PhaseManipulator extends Manipulator {
     }
   }
 
-  requireValidFraseManipulator (nm) {
-    const
-      manipName = './Manipulators/' + nm + '.js',
-      doesExist = fs.existsSync(manipName),
-      doThrow = !doesExist;
-
-
-    if (doThrow) {
-      throw new Error('Frase Manipulator "' + manipName + '" does not seem to exist.');
-    }
-  }
-
   getFraseManipInstance (nm) {
-    const ManipClass = require('./' + nm + '.js'),
-      manipInstance = new ManipClass();
+    const
+      manipInstance = manipulatorFactory(nm);
     if (!manipInstance || !manipInstance.setSongData) {
       throw new Error('Frase Manipulator "' + nm + '" does not seem to exist or is malforned.');
     }
@@ -197,4 +197,4 @@ class PhaseManipulator extends Manipulator {
   }
 }
 
-module.exports = PhaseManipulator;
+export default PhaseManipulator;

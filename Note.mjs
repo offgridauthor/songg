@@ -1,4 +1,6 @@
-const tonalNote = require('tonal-note');
+import tonal from 'tonal';
+
+const tonalNote = tonal.note;
 
 /**
  * Constructs instance of object with class Note
@@ -21,11 +23,6 @@ class Note {
     let clonedAttribs = this.getNoteAttribs();
     return new Note({note: clonedAttribs});
   }
-  // 
-  // compile () {
-  //   let newAttrs = tonalNote.props(this.letter + this.oct);
-  //   this.ntAttrs = _.extend(this.ntAttrs, newAttrs);
-  // }
 
   multiplyDuration (multiplicand) {
     this.duration = this.duration * multiplicand;
@@ -139,4 +136,4 @@ class Note {
   }
 }
 
-module.exports = Note;
+export default Note;

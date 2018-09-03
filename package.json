@@ -4,10 +4,7 @@
     "description": "Music composition from JSON and scripting",
     "main": "index.js",
     "scripts": {
-        "test": "test",
-        "lint": "node_modules/.bin/eslint",
-        "build": "./node_modules/.bin/babel . -d lib --ignore node_modules,'lib/','public/'",
-        "mon": "nodemon --exec \"npm run-script build && node lib/index.js\" --ignore lib"
+        "mon-d": "nodemon --exec \"node --experimental-modules index.mjs\" --ignore node_modules,'public/'"
     },
     "repository": {
         "type": "git",
@@ -18,8 +15,8 @@
         "midi",
         "theory"
     ],
-    "author": "Dave-o Roe",
-    "license": "ISC",
+    "author": "Davo Roe",
+    "license": "CC-BY-ND-4.0",
     "bugs": {
         "url": "https://github.com/rdroe/songg/issues"
     },
@@ -42,6 +39,6 @@
         "eslint-plugin-promise": "^3.6.0",
         "eslint-plugin-standard": "^3.0.1",
         "midiutils": "0.0.4",
-        "nodemon": "^1.14.1"
+        "nodemon": "^1.18.4"
     }
 }

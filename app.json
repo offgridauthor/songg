@@ -1,8 +1,0 @@
-{
-  "name": "Songg",
-  "description": "Music composition utility and application",
-  "repository": "https://github.com/heroku/songg",
-  "logo": "http://songg.herokuapp.com/node.svg",
-  "keywords": ["node", "express", "static"],
-  "image": "heroku/nodejs"
-}

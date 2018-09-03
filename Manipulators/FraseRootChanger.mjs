@@ -2,7 +2,7 @@
  * Snazzify a frase ; add or remove notes for that frase, for example.
  */
 
-import FraseManipulator from './FraseManipulator.js';
+import FraseManipulator from './FraseManipulator.mjs';
 
 class FraseRootChanger extends FraseManipulator {
   constructor () {
@@ -34,4 +34,4 @@ class FraseRootChanger extends FraseManipulator {
     return fr2;
   }
 }
-module.exports = FraseRootChanger;
+export default FraseRootChanger;

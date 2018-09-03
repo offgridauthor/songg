@@ -1,11 +1,15 @@
 
-import Segment from './Segment.js';
+import Segment from './Segment.mjs';
 import fs from 'fs';
+import manipulatorFactory from './manipulatorFactory.mjs';
 
 /**
- * Largest constituent member for a Song instance; contains frases.
+ * Largest constituent class for a Song instance; contains frases.
+ * A Phase instance contains multiple iterations of the phase, and
+ * iterations are known as "iterations" or "measures".
  */
 class Phase extends Segment {
+
   /**
    * Construct!
    *
@@ -99,7 +103,7 @@ class Phase extends Segment {
   }
 
   /**
-   * Simple verification for the options passed in.
+   * Simple validation for the options passed in.
    *
    */
   verifySongOpts (opts) {
@@ -129,14 +133,14 @@ class Phase extends Segment {
   * Run a manipulator on this phase
   */
   runManip (dat, nm) {
-    const childClass = './Manipulators/' + nm + '.js',
-      parentClass = './Manipulators/PhaseManipulator.js',
-      childClassExists = fs.existsSync(childClass);
+    let parentClass = 'PhaseManipulator',
+      childFile = `./Manipulators/${nm}.mjs`,
+      childFileExists = fs.existsSync(childFile),
+      className, manip;
 
-    let className = childClassExists
-        ? childClass : parentClass,
-      Class = require(className),
-      manip = new Class(nm);
+    className = (childFileExists
+      ? nm : 'PhaseManipulator'),
+    manip = manipulatorFactory(className, nm);
 
     manip.phase = this;
     manip.go(dat);
@@ -145,7 +149,9 @@ class Phase extends Segment {
   /**
    * First find the frases of the specified name. Within that subset of the
    * phase's frases, find all those in the specified ranges (keys var).
-   * Returns an array of indexes (but the index values are indexed from 1, not 0).
+   * Returns an array of indexes. (Note that values are indexed from 1, not 0;
+   * which matches the perspective of the JSON composition).
+   *
    */
   findFrasesInRange (nm, keys) {
     let byName = this.fraseWhereNamed(nm),
@@ -176,6 +182,10 @@ class Phase extends Segment {
     return returnableFrases;
   }
 
+  /**
+   * Get intersection of two sets.
+   *
+   **/
   getIntersection (set1, set2) {
     let merger = [...set1].filter((set1item) => {
       return set2.has(set1item);
@@ -183,6 +193,13 @@ class Phase extends Segment {
     return merger;
   }
 
+  /**
+   * Return the query method to call to iterate on the proper frases subset
+   * based on the range indicator from "location" section in JSON song
+   * composition data, e.g. "<1", ">4".
+   *
+   * @param {String} rangeKey "range" attribute from the JSON entry, e.g "<0"
+   */
   deriveRangeMethod (rangeKey) {
     const char1 = rangeKey.slice(0, 1),
       restOfIt = parseInt(rangeKey.slice(1)),
@@ -197,9 +214,20 @@ class Phase extends Segment {
     } else {
       throw new Error('Invalid range: ' + rangeKey);
     }
+
     return retVar;
   }
 
+  // Below are range-finding functions--only "isLessThan" and "isGreaterThan" at time
+  // of writing. I wrote these in such a way as to make the range concept easily expansible.
+
+  /**
+   * Return the range (array of indices) from the beginning of the
+   * specified subset to either the last item or the sought index,
+   * whichever is least.
+   *
+   * @param {String} rangeKey "range" attribute from the JSON entry, e.g "<0"
+   **/
   isLessThan (sought, fraseSubset) {
     let matches,
       endPoint = (fraseSubset.length) < sought
@@ -211,6 +239,13 @@ class Phase extends Segment {
     return matches;
   }
 
+  /**
+   * Return the range (array of indices) from the beginning of the
+   * specified subset to either the last item or the sought index,
+   * whichever is least.
+   *
+   * @param {String} rangeKey "range" attribute from the JSON entry, e.g "<0"
+   **/
   isGreaterThan (sought, fraseSubset) {
     let arr,
       matches;
@@ -230,8 +265,8 @@ class Phase extends Segment {
   * which is 1-indexed, return all items in the first array
   * ("somefrasesSubsetSubset") that fall at one of the indexes.
    *
-   * @param  {Array} frasesSubset description
-   * @param  {Object} indexes     description
+   * @param  {Array} frasesSubset Subset from frases array
+   * @param  {Object} indexes     Indexes from which to fetch frases
    *
    * @return {Array}              description
    */
@@ -276,27 +311,24 @@ class Phase extends Segment {
   /**
    * Set timing for the frases in this phase.
    *
-   * @return {Undefined}  description
+   * @return {Undefined}
    */
   innerTiming () {
+
     // initialize as 0 , for first frase.
     let newLen = 0;
     this.forEachFrase(fr => {
-      console.log('fr duration');
-      console.log(fr.getDuration);
-      console.log('start:', newLen + 1);
       // set frase to start on the midi tick following the
       // end of the prior frase's duration.
       fr.setPhaseRelativeStartTime(newLen + 1);
-      newLen += fr.getDuration(); // Should this + 1 remain? Brief usage test seems fine.
+      newLen += fr.getDuration();
     });
-    console.log('frase duration', newLen);
+
     // set this phase's duration to the total of all of the frases
     this.set('duration', newLen);
   }
-
+ 
   testInsertAfter (referenceToElement, insertableElement) {
-  //myArray.findIndex(x => x.hello === 'stevie')
     let refIndex = this.frases.findIndex(
       (x) => {
         console.log('testing these two (ref and iterated): ', [referenceToElement, x], (x === referenceToElement));
@@ -308,9 +340,7 @@ class Phase extends Segment {
   }
 
   insertFrase (idx, fr) {
-    // if (fr.constructor.name !== 'Frase') {
-    //   throw new Error();
-    // }
+    // @todo: check inheritance chain; ensure arg is a frase
     this.frases.splice(idx, 0, fr);
   }
   /**
@@ -326,4 +356,4 @@ class Phase extends Segment {
   }
 }
 
-module.exports = Phase;
+export default Phase;

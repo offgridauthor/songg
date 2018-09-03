@@ -3,7 +3,7 @@
  * of a bar should be adjusted / left untouched
  *
  */
-module.exports = {
+export default {
   /**
      * Affect all notes
      *
