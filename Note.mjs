@@ -23,11 +23,6 @@ class Note {
     let clonedAttribs = this.getNoteAttribs();
     return new Note({note: clonedAttribs});
   }
-  //
-  // compile () {
-  //   let newAttrs = tonalNote.props(this.letter + this.oct);
-  //   this.ntAttrs = _.extend(this.ntAttrs, newAttrs);
-  // }
 
   multiplyDuration (multiplicand) {
     this.duration = this.duration * multiplicand;

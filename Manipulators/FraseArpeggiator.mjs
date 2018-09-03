@@ -23,6 +23,7 @@ class FraseArpeggiator extends FraseManipulator {
       nts = this.wrapNotes(cloned);
     // @todo: Probably replace with _.map or native Array.map
     _.each(nts, (nt, idx) => {
+
       let pegMap = this.config.data;
 
       if (pegMap[idx] !== undefined) {

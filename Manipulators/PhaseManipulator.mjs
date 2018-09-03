@@ -164,6 +164,7 @@ class PhaseManipulator extends Manipulator {
    * variables in the query method call)
    */
   parseFraseQuery (crdIdx) {
+
     if (_.isNumber(crdIdx)) {
       return {q: 'findFraseByIndex', k: crdIdx};
     }

@@ -15,17 +15,12 @@ Segments are the data model and submodel. They include the architectural section
 ### The front end
 This is not a front end; the front-end code is provisional, and just a starting place for futher front-end development. In the provided code, you can download the midi file of the song you're creating. You should hear it played in the browser, as well.
 
-### Music composition via scripting
-The codebase "Songg" (working title) is a music composition library. Primary input is in the form of chord names, note names, keys, and tonal increments in traditional music theory. Focus is overwhelmingly on the backend, so far.  
+### Overview of Processing
+Primary input is in two forms: (1) chord names, note names, keys, and tonal increments in traditional music theory; and (2) JavaScript algorithms that automate placement and alteration of notes from (1). Focus is overwhelmingly on the backend, so far.
 
-In the current (developmental) version, the medium of input is a json file. It's a notion far more semantic than MIDI, and is enabled by [tonal.js](https://github.com/danigb/tonal). The data format is intended to be creatively useful for musicians who also know how to code. Some json key names correspond to code classes; and in a fashion meant to be complimentary to the data, the code is extensible.
+In the current (developmental) version, the medium of input is a json file with notation from [tonal.js](https://github.com/danigb/tonal). The data format is intended to be creatively useful for musicians who also know how to code. Some json key names correspond to code classes; and in a fashion meant to be complimentary to the data, the code is extensible.
 
-Songg makes use of [tonal.js](https://github.com/danigb/tonal), a music theory library for JavaScript. An example of something tonal.js allows you to do is to generate chords and scales from musical terminology such as "C major", but there are many other music-theoretical features. The other major feature of Songg is that it allows you to export midi tracks. These you can drag and drop into other music editing applications.
-
-### Dev backend in browser
-The client side is barely present, and really just intended as a stub for future development. I am still deciding between a few different architectures; the client-side is only a single file, but should be pretty readable, as it's short and clear.
-
-In fact, two different methods are provided for in-browser players. As a dev, you can switch between them with a simple code change. In music.ejs, you will see remarks as to how to effect this change. Experiment between ([Tone.js](https://github.com/Tonejs/Tone.js)) and ([soundfont-player](https://github.com/danigb/soundfont-player)). You'll notice that the Tone.js player is a synthesizer utilizing WebAudio in HTML5, whereas the soundfont-player uses a recorded sample played at the various pitches.
+[Tonal.js](https://github.com/danigb/tonal) is a music theory library for JavaScript. An example of something tonal.js allows you to do is to generate chords and scales from musical terminology such as "C major", but there are many other music-theoretical features. The other major feature of Songg is that it allows you to export midi tracks. These you can drag and drop into other music editing applications.
 
 ### Installation
 
@@ -68,11 +63,13 @@ The Manipulators include
 - FraseNoteRepeater - Causes nth note (for now, only from a frase's chord) to be repeated at yth time
 - FraseRootChanger - Rotates the note order of a frase by pushing the first note to the end of the ordering, and raises that note's octave by n octaves. For example (virtual example) [C4, E4, G4] becomes [E4, G4, C5]
 - Snazzifier - Beginning from the last note by default, it splits that note up within its time frame and changes the pitches of the pieces that are left according to the scale or chord or custom scale (as specified).
+- FraseChanger - Change the basic properties of a subset of frases, such as duration.
+- Melody - add a freeform series of notes to a phase as a customized frase.
 
 Planned docs will indicate how to use each class of manipulator.
-Also, I plan to add tests soon
+Tests for the Manipulators, SongHandler, and SongFile are scheduled to be completed by October 31, 2018.
 
 ### Why JSON instead of a database?
-Using json is not a principled decision, but a convenient one. I have always planned to install a better data layer. Those plans aren't definite yet. I will probably always maintain a json driver/adapter as one option.
+Using json is not a principled decision, but a convenient one. I have always planned to install a better data layer. Those plans aren't definite yet.
 
-songg is © r. david roe 2016 - 18.
+songg is © robert d. roe 2016-18

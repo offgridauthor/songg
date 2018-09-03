@@ -1,9 +1,5 @@
 // Base class for a manipulator
 class Manipulator {
-  constructor () {
-    this.name = 'Manipulator';
-  }
-
   /**
    * This method couples data from the song file (for the
     particular Manipulator as configured, there) with the originary
