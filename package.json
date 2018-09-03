@@ -4,7 +4,7 @@
     "description": "Music composition from JSON and scripting",
     "main": "index.js",
     "scripts": {
-        "mon-d": "nodemon --exec \"node --experimental-modules index.mjs\" --ignore node_modules,'public/'"
+        "mon": "./node_modules/.bin/nodemon --exec \"node --experimental-modules  index.mjs\" --ignore node_modules,'public/'"
     },
     "repository": {
         "type": "git",
