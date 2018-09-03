@@ -133,7 +133,7 @@ class SongFile {
   }
 
   /**
-   * David Roe likes to go by "Davo" at work.
+   * Add a note to a Midgen track.
    *
    * @param {Object} midiTrack Track from midgen.js
    * @param {Object} evt       Note on / off data
@@ -214,10 +214,9 @@ class SongFile {
   }
 
   /**
-   * Get the contents of the song bar by bar--for playing as
-   * opposed to saving to a file.
-   *
-   * @return {Array} Array of arrays, where each inner array has notes of a track.
+   * Get the contents of the song for playing. Only "on" events are passed, as 
+   * for use by the front-end midi players.
+   * @return {Array} Array of on events with durations included.
    */
   getFilteredBars () {
     let brz = this.filterBrowserNotes(this.eventTracks);
