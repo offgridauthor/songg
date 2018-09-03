@@ -1,5 +1,5 @@
 
-A musical data model for creating music algorithmically.
+A data model for creating music algorithmically.
 
 (This code is in the process of being converted to demonstrate ES6 and ES7.)
 
