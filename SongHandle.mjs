@@ -4,8 +4,7 @@ import Frase from './Frase.mjs';
 import SongFile from './SongFile.mjs';
 import tonal from 'tonal';
 
-const secondsDivisor = 256,
-  Chord = tonal.Chord;
+const Chord = tonal.Chord;
 
 /**
  * Class to create a song from the model, store it as midi, and produce links
@@ -58,6 +57,7 @@ class SongHandle {
    * @return {Object} Inflated song
    */
   inflate (songDat) {
+    console.log('inflating');
     this.compose(songDat);
   }
 

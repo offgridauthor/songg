@@ -52,16 +52,13 @@ function compose (request, response) {
 
   var query = urlParts.query;
   fileName = query.fileName;
-  console.log('q.file = ', query.fileName, query);
+
   if (query.fileName !== undefined) {
-
-    console.log('using ', query.fileName);
     fileName = query.fileName;
-
   } else {
-    console.log('dirs', dirs);
     fileName = dirs[0];
   }
+
   requireExistentFile(fileName);
   const dat = fs.readFileSync(`./Songs/${fileName}`).toString();
   songHandle = new SongHandle(JSON.parse(dat));
@@ -79,13 +76,11 @@ function compose (request, response) {
   // The midi file exporter or writer to export them
   songHandle.saveMidi();
 
-  let linkText = songHandle.get('outputLink');
-
   // With file saved, respond with data.
   songData = {
     'files': dirs,
     'song': songHandle.readBars(),
-    'midiLink': linkText
+    'midiLink': songHandle.get('outputLink')
   };
 
   jsonSong = JSON.stringify(songData);

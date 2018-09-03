@@ -9,7 +9,6 @@ import manipulatorFactory from './manipulatorFactory.mjs';
  * iterations are known as "iterations" or "measures".
  */
 class Phase extends Segment {
-
   /**
    * Construct!
    *
@@ -22,19 +21,6 @@ class Phase extends Segment {
    */
   constructor (frases, nm, order, phaseParams) {
     super();
-    this.allowedProps = [
-      'imposedFraseLength',
-      'frases',
-      'name',
-      'fraseDuration',
-      'index',
-      'phaseDelay',
-      'manipParams',
-      'chords',
-      'duration',
-      'startTime'
-    ];
-
     this.frases = null;
     this.imposedFraseLength = null;
     this.initialize(frases, nm, order, phaseParams);
@@ -314,7 +300,6 @@ class Phase extends Segment {
    * @return {Undefined}
    */
   innerTiming () {
-
     // initialize as 0 , for first frase.
     let newLen = 0;
     this.forEachFrase(fr => {
@@ -327,7 +312,7 @@ class Phase extends Segment {
     // set this phase's duration to the total of all of the frases
     this.set('duration', newLen);
   }
- 
+
   testInsertAfter (referenceToElement, insertableElement) {
     let refIndex = this.frases.findIndex(
       (x) => {
@@ -343,6 +328,7 @@ class Phase extends Segment {
     // @todo: check inheritance chain; ensure arg is a frase
     this.frases.splice(idx, 0, fr);
   }
+
   /**
    * Update frases with the new phase duration.
    */
@@ -353,6 +339,21 @@ class Phase extends Segment {
       fr.set('startTime', relStartTime + phsStartTm);
       fr.setInNotes('fraseStartTime', relStartTime + phsStartTm);
     });
+  }
+
+  get allowedProps () {
+    return [
+      'imposedFraseLength',
+      'frases',
+      'name',
+      'fraseDuration',
+      'index',
+      'phaseDelay',
+      'manipParams',
+      'chords',
+      'duration',
+      'startTime'
+    ];
   }
 }
 

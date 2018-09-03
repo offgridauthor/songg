@@ -1,15 +1,11 @@
 /**
-  * Model class for raw song data
-  * 
+  * Model class for a track within a Midi file.
+  *
   **/
 import Segment from './Segment.mjs';
 import Phase from './Phase.mjs';
 
-const div1 = .75,
-  secondsDivisor = 256;
-
-class Song extends Segment {
-
+class Track extends Segment {
   /**
    * Backbone model defaults
    *
@@ -232,4 +228,4 @@ class Song extends Segment {
   }
 }
 
-export default Song;
+export default Track;

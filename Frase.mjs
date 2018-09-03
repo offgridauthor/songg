@@ -1,10 +1,12 @@
+import Segment from './Segment.mjs';
 
-class Frase {
+class Frase extends Segment {
   /**
    * Build instance
    * @param params params
    */
   constructor (params) {
+    super();
     this.initialize(params);
   }
 

@@ -3,6 +3,7 @@ import FraseManipulator from './Manipulators/FraseManipulator.mjs';
 import PhaseManipulator from './Manipulators/PhaseManipulator.mjs';
 import FraseArpeggiator from './Manipulators/FraseArpeggiator.mjs';
 import FraseChanger from './Manipulators/FraseChanger.mjs';
+import FraseRootChanger from './Manipulators/FraseRootChanger.mjs';
 import FraseNoteChanger from './Manipulators/FraseNoteChanger.mjs';
 import FraseNoteRepeater from './Manipulators/FraseNoteRepeater.mjs';
 import Melody from './Manipulators/Melody.mjs';
@@ -10,40 +11,43 @@ import Snazzifier from './Manipulators/Snazzifier.mjs';
 import SongManipulator from './Manipulators/SongManipulator.mjs';
 
 function manipulatorFactory (className, fraseManipulatorName) {
-    switch (className) {
-    case 'Manipulator':
-      return new Manipulator();
+  switch (className) {
+  case 'Manipulator':
+    return new Manipulator();
 
-    case 'FraseManipulator':
-      return new FraseManipulator();
+  case 'FraseManipulator':
+    return new FraseManipulator();
 
-    case 'PhaseManipulator':
-      return new PhaseManipulator(fraseManipulatorName);
+  case 'PhaseManipulator':
+    return new PhaseManipulator(fraseManipulatorName);
 
-    case 'FraseArpeggiator':
-      return new FraseArpeggiator();
+  case 'FraseArpeggiator':
+    return new FraseArpeggiator();
 
-    case 'FraseChanger':
-      return new FraseChanger();
+  case 'FraseChanger':
+    return new FraseChanger();
 
-    case 'FraseNoteChanger':
-      return new FraseNoteChanger();
+  case 'FraseRootChanger':
+    return new FraseRootChanger();
 
-    case 'FraseNoteRepeater':
-      return new FraseNoteRepeater();
+  case 'FraseNoteChanger':
+    return new FraseNoteChanger();
 
-    case 'Melody':
-      return new Melody();
+  case 'FraseNoteRepeater':
+    return new FraseNoteRepeater();
 
-    case 'Snazzifier':
-      return new Snazzifier();
+  case 'Melody':
+    return new Melody();
 
-    case 'SongManipulator':
-      return new SongManipulator();
+  case 'Snazzifier':
+    return new Snazzifier();
 
-    default:
-      throw new Error(`Can't find class "${className}"`);
-    }
+  case 'SongManipulator':
+    return new SongManipulator();
+
+  default:
+    throw new Error(`Can't find class "${className}"`);
   }
+}
 
 export default manipulatorFactory;

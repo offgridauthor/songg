@@ -59,6 +59,7 @@ class Note {
      refresh of all other attributes.
    */
   set letter (letterWithOct) {
+    // need the actual letter , "#" or "b", and octave.
     let tokenized = this.getTokens(letterWithOct);
 
     this.ntAttrs.letter = tokenized[0] + tokenized[1];

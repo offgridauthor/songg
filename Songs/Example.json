@@ -1,4 +1,5 @@
 {
+  "name": "Example",
   "manipParams": {
     "Arpeggiator": [
       {
@@ -113,7 +114,7 @@
         "octave": "D4"
       }
   ],
-  "composition": ["aphrodite", "aphrodite"],
+  "composition": [["aphrodite", "aphrodite"]],
   "phases": {
     "penelope": {
         "measureCount": 2,
