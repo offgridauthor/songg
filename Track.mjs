@@ -141,8 +141,12 @@ class Track extends Segment {
   }
 
   songHooks () {
-    const that = this;
-    _.each(this.get('manipParams'), (manipDataList, manipName) => {
+    const that = this,
+      manipParams = this.get('manipParams');
+    if (!manipParams) {
+      return;
+    }
+    _.each(manipParams, (manipDataList, manipName) => {
       that.runManipOnPhases(manipName, manipDataList);
     });
   }
@@ -168,7 +172,14 @@ class Track extends Segment {
         // Run this one Arpeggiator.data config element against its listed
         // phases.
         _.each(phaseInstances, (phsInst) => {
-          phsInst.runManip([manipDatum], manipName);
+          if (phsInst.length) {
+            _.each(phsInst, (subInst) => {
+              subInst.runManip([manipDatum], manipName);
+            });
+          } else {
+            phsInst.runManip([manipDatum], manipName);
+          }
+
         });
       }
     );
@@ -179,11 +190,21 @@ class Track extends Segment {
    * aphrodite:2 is PHASENAME:2 indicated that phase's 2nd instance in the song.
    * If no colon + index, it uses the first.
    *
+   * Some "indexes" following the colon, will return multiple items into the map slot.
+   * In those cases, the caller should presume the array contains phase instances
+   * on which to run the manipulator that it's probably dealing with.
    * @param  {Array} phaseList List of phases
    *
    * @return {Array}
    */
   phaseMapForList (phaseList) {
+    if (phaseList[0] === '*') {
+      if (phaseList.length > 1) {
+        throw new Error('Wildcard disallowed in list; only allowed as sole item.');
+      }
+      return this.phases;
+    }
+
     let all =
       _.map(
         phaseList,
@@ -212,6 +233,8 @@ class Track extends Segment {
             } else {
               return byName[0];
             }
+          } else if (idx === '*') {
+            return byName;
           } else {
             if (undefined === byName[idx - 1]) {
               throw new Error(`No phase at index ${idx - 1} (zero-indexed version of your entry, ${idx}) for phase name ${nm}`);

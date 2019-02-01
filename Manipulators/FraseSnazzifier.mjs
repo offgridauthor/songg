@@ -7,7 +7,6 @@ import FraseManipulator from './FraseManipulator.mjs';
  * which can be a scale from tonal.js or series of specified notes.
  */
 class FraseSnazzifier extends FraseManipulator {
-
   /**
    * Build instance
    */
@@ -79,10 +78,11 @@ class FraseSnazzifier extends FraseManipulator {
   /**
    * Split a single note and adjust the pitch of its pieces.
    *
-   * @param  {Number} cuts            number of cuts to create (2 for triplet, etc)
-   * @param  {Object} originalNt      original note
+   * @param  {Number} cuts           number of cuts to create (2 for triplet, etc)
+   * @param  {Object} originalNt     original note
    * @param  {Array} precScalesInner The precedent chain of scales available (song, phase, chord, cut)
-   * @param  {Array} octLimits       upper and lower limit to which to constrail octave
+   * @param  {Array} octLimits       upper and lower limit to which to constrain octave
+   *
    * @return {Array}                 The array of notes resulting from cuts
    */
   splitNote (cuts, originalNt, precScalesInner, octLimits) {

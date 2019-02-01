@@ -240,7 +240,9 @@ class FraseManipulator extends Manipulator {
 
   /** wrap notes in the Note class handler **/
   wrapNotes (ntsArray) {
-    return _.map(ntsArray, (nt) => { return new Note(nt); });
+    return _.map(ntsArray, (nt, idx) => {
+      return new Note(nt);
+    });
   }
 
   /** Get the data associated with a Note instance **/

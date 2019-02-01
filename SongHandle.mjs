@@ -1,5 +1,5 @@
 import parser from 'note-parser';
-import Song from './Song.mjs';
+import Track from './Track.mjs';
 import Frase from './Frase.mjs';
 import SongFile from './SongFile.mjs';
 import tonal from 'tonal';
@@ -81,8 +81,10 @@ class SongHandle {
       trackContainer = [];
 
     // For each track . . . a series of phase names from global data.
-    _.each(tracks, (songComp) => {
-      let song = new Song(songGlobalDat, songComp, indexInSong, songGlobalDat.manipParams);
+    _.each(tracks, (songComp, idx) => {
+      const manipParams = songGlobalDat.manipParams[idx] ? songGlobalDat.manipParams[idx] : null;
+
+      let song = new Track(songGlobalDat, songComp, indexInSong, manipParams);
 
       // for each phase on each track (each song)
       _.each(songComp, (phaseName) => {

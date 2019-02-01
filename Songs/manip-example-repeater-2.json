@@ -1,0 +1,199 @@
+{
+  "remark": "This example demonstrates increasingly sophisticated use of the Frase Snazzifier. The G chord is always used. In the example phase, it is repeated 8 times by giving the 1-chord phase a measureCount of 8. \n\n Within a snazzifier block inside of a phase definition, the highest 'index' property tells it which of those G chord instances to do its work on. See notes throughout the file.\n\nThe order of Arpeggiator-NoteRepeater matters. You could arpeggiated, and then base timing off of the arpeggiated note's time.\nYou can change at the same time you repeat. in addition to relativeTime, which straight up replaces the time of the note within the bar, you also have proportional-time available (number multiple of timeUnit) and rep-time. Both of these are additive to the arpeggiated time; e.g., if you have run an arpeggiator before the note repeater.",
+  "name": "Electro-Durne",
+  "composer": "Davo",
+  "manipParams": {},
+  "chords": [
+    {
+        "name": "Em",
+        "chord": "m",
+        "octave": "E4"
+    },
+    {
+        "name": "Em2",
+        "chord": "m",
+        "octave": "E3"
+    },
+    {
+        "name": "Dm",
+        "chord": "m",
+        "octave": "D4"
+    },
+    {
+        "name": "Dm2",
+        "chord": "m",
+        "octave": "D3"
+    },
+    {
+        "name": "F",
+        "chord": "M",
+        "octave": "F4"
+    },
+    {
+        "name": "F2",
+        "chord": "M",
+        "octave": "F3"
+    },
+    {
+        "name": "FMaj7",
+        "chord": "Maj7",
+        "octave": "F4"
+    },
+    {
+        "name": "CMaj7",
+        "chord": "Maj7",
+        "octave": "C4"
+    },
+    {
+        "name": "C13",
+        "chord": "M13",
+        "octave": "C4"
+    },
+    {
+        "name": "Em7",
+        "chord": "m7",
+        "octave": "E4"
+    },
+    {
+      "name": "C",
+      "chord": "M",
+      "octave": "C4"
+    },
+    {
+      "name": "C2",
+      "chord": "M",
+      "octave": "C3"
+    },
+    {
+        "name": "Dm7",
+        "chord": "m7",
+        "octave": "D4"
+    },
+    {
+      "name": "Bo",
+      "chord": "o",
+      "octave": "B4"
+    },
+    {
+      "name": "Am",
+      "chord": "m",
+      "octave": "A4"
+    },
+    {
+        "name": "Em9",
+        "chord": "m9",
+        "octave": "E4"
+    },
+    {
+        "name": "Dmadd9",
+        "chord": "madd9",
+        "octave": "D4"
+    },
+    {
+      "name": "Do",
+      "chord": "o",
+      "octave": "D4"
+    },
+    {
+      "name": "G",
+      "chord": "M",
+      "octave": "G4"
+    },
+    {
+      "name": "G7",
+      "chord": "7",
+      "octave": "G4"
+    },
+    {
+      "name": "G-repeat",
+      "chord": "M",
+      "octave": "G4"
+    },
+    {
+      "name": "Co",
+      "chord": "o",
+      "octave": "C4"
+    },
+    {
+      "name": "Ebo",
+      "chord": "o",
+      "octave": "Eb4"
+    },
+    {
+      "name": "D",
+      "chord": "M",
+      "octave": "D4"
+    }
+  ],
+  "composition": [["aphrodite"]],
+  "phases": {
+      "aphrodite": {
+          "measureCount": 1,
+          "composition": [
+            "Em2"
+          ],
+          "noteDuration": 128,
+          "imposedFraseLength": 512,
+          "remark":   {
+            "Arpeggiator": [
+            {
+              "chord": "F",
+              "location": {
+                "index": 2
+              },
+              "data": [0, 64, 128, 184]
+            },
+            {
+              "chord": "F",
+              "location": {
+                "index": 3
+              },
+              "data": [0, 64, 128, 32]
+            }
+          ]},
+          "manipParams": {
+            "Arpeggiator": [
+                {
+                    "data": [0, 448, 768]
+                }
+              ],
+              "NoteRepeater": [
+                {
+                  "chord": "Em2",
+                  "location": {
+                    "index": 1,
+                    "range": null
+                  },
+                  "time-unit": 128,
+                  "data": [
+                    {
+                      "index": [1], "count": 4, "change-map": [{
+                        "proportional-time": 1
+                      },
+                      {
+                        "proportional-time": 1.5
+                      },
+                      {
+                        "proportional-time": 2
+                      },
+                      {
+                        "proportional-time": 3
+                      }
+                      ]
+                    },
+                    {
+                      "index": [2], "count": 2, "change-map": [{
+                        "proportional-time": 1
+                      },
+                      {
+                        "proportional-time": 1.5
+                      }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+    }

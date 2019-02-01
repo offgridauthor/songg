@@ -1,0 +1,183 @@
+{
+  "remark": "This example demonstrates increasingly sophisticated use of the Frase Snazzifier. The G chord is always used. In the example phase, it is repeated 8 times by giving the 1-chord phase a measureCount of 8. \n\n Within a snazzifier block inside of a phase definition, the highest 'index' property tells it which of those G chord instances to do its work on. See notes throughout the file.",
+  "name": "Frase-Manipulations--Snazzifier-I",
+  "composer": "Davo",
+  "manipParams": {},
+  "chords": [
+      {
+        "name": "G",
+        "chord": "M",
+        "octave": "G4"
+      }
+  ],
+  "composition": [["aphrodite", "aphrodite"]],
+  "phases": {
+      "aphrodite": {
+          "measureCount": 8,
+          "composition": [
+            "G"
+          ],
+          "noteDuration": 128,
+          "imposedFraseLength": 512,
+          "manipParams": {
+              "Arpeggiator": [
+                  {
+                      "data": [0, 128, 256, 384]
+                  }
+                ],
+                "Snazzifier": [
+                  {
+                    "chord": "G",
+                    "location": {
+                      "index": 1,
+                      "range": null
+                    },
+                    "action": "split-last",
+                    "scale": "C minor",
+                    "data": [
+                      {
+                        "direction": "low->high",
+                        "remark": "'low->high--or any value here, as 'direction'--is useless at the time of writing'",
+                        "cuts": 5,
+                        "remark2": "how many times to slice the note",
+                        "scale": ["D", "E", "F", "G", "A", "B"],
+                        "remark3": "'scale' is one way in which to constrain the newly generated subnotes",
+                        "directives" : {
+                          "limitOctave": [0, 0],
+                          "remark": "How many octaves up and down should the notes be allowed to spread? 0 up and 0 down limits to the same octave"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "chord": "G",
+                    "location": {
+                      "index": 2,
+                      "range": null
+                    },
+                    "action": "split-last",
+                    "scale": "C minor",
+                    "data": [
+                      {
+                        "direction": "low->high",
+                        "cuts": 5,
+                        "scale": "USE_CHORD",
+                        "directives" : {
+                          "limitOctave": [0, 0],
+                          "//": "note"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "chord": "G",
+                    "location": {
+                      "index": 3,
+                      "range": null
+                    },
+                    "action": "split-last",
+                    "scale": "C minor",
+                    "data": [
+                      {
+                        "direction": "low->high",
+                        "cuts": 5,
+                        "scale": "USE_CHORD",
+                        "directives" : {
+                          "limitOctave": [2, 2],
+                          "//": "note"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "chord": "G",
+                    "location": {
+                      "index": 4,
+                      "range": null
+                    },
+                    "action": "split-last",
+                    "scale": "C minor",
+                    "data": [
+                      {
+                        "direction": "high->low",
+                        "cuts": 5,
+                        "scale": ["D", "E", "F", "G", "A", "B"],
+                        "directives" : {
+                          "limitOctave": [0, 0],
+                          "//": "note"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "chord": "G",
+                    "location": {
+                      "index": 5,
+                      "range": null
+                    },
+                    "action": "split-last",
+                    "scale": "C minor",
+                    "data": [
+                      {
+                        "direction": "high->low",
+                        "cuts": 3,
+                        "scale": "USE_CHORD",
+                        "directives" : {
+                          "limitOctave": [0, 0],
+                          "//": "note"
+                        }
+                      },
+                      {
+                        "direction": "high->low",
+                        "cuts": 2,
+                        "scale": "USE_CHORD",
+                        "directives" : {
+                          "limitOctave": [0, 0],
+                          "//": "note"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "chord": "G",
+                    "location": {
+                      "index": 6,
+                      "range": null
+                    },
+                    "action": "split-last",
+                    "scale": "C minor",
+                    "data": [
+                      {
+                        "direction": "high->low",
+                        "cuts": 3,
+                        "scale": "USE_CHORD",
+                        "directives" : {
+                          "limitOctave": [0, 0],
+                          "//": "note"
+                        }
+                      },
+                      {
+                        "direction": "high->low",
+                        "cuts": 2,
+                        "scale": "USE_CHORD",
+                        "directives" : {
+                          "limitOctave": [0, 0],
+                          "//": "note"
+                        }
+                      },
+                      {
+                        "direction": "high->low",
+                        "cuts": 1,
+                        "scale": "USE_CHORD",
+                        "directives" : {
+                          "limitOctave": [0, 0],
+                          "//": "note"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+          }
+        }
+    }

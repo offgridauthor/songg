@@ -10,7 +10,7 @@ class Note {
    * @param  {Object} atrs Reference to a set of attributes in
    *                       a song that make up a single note.
    *
-   * @return {undefined}
+   * @return {Note}
    */
   constructor (atrs) {
     this.ntAttrs = atrs.note;

@@ -34,7 +34,6 @@ export default {
    */
   logg: function (arg1) {
     if (typeof arg1 === 'object') {
-      console.log(JSON.stringify(arg1, null, 4));
       return;
     }
     console.log(arg1);

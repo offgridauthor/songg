@@ -86,10 +86,13 @@ class Phase extends Segment {
   runManip (dat, nm) {
     let childFile = `./Manipulators/${nm}.mjs`,
       childFileExists = fs.existsSync(childFile),
-      className, manip;
+      className,
+      manip;
 
-    className = (childFileExists
-      ? nm : 'PhaseManipulator'),
+    className = childFileExists
+      ? nm
+      : 'PhaseManipulator';
+
     manip = manipulatorFactory(className, nm);
 
     manip.phase = this;
@@ -291,19 +294,18 @@ class Phase extends Segment {
    * @param  {Object}     insertableElement  Object to insert (Frase instance)
    * @return {Undefined}
    */
-  testInsertAfter (referenceToElement, insertableElement) {
+  insertAfter (referenceToElement, insertableElement) {
     let refIndex = this.frases.findIndex(
       (x) => {
-        console.log('testing these two (ref and iterated): ', [referenceToElement, x], (x === referenceToElement));
         return (x === referenceToElement);
       }
     );
-    console.log('found object at index ', refIndex + 1);
+    // found object at refIndex; insert it.
     this.insertFrase(refIndex + 1, insertableElement);
   }
 
   /**
-   * Splace a frase into this.frases
+   * Splice a frase into this.frases
    *
    */
   insertFrase (idx, fr) {

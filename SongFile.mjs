@@ -1,9 +1,5 @@
-import parser from 'note-parser';
-import Song from './Song.mjs';
-import Frase from './Frase.mjs';
 import fs from 'fs';
 import Midi from 'jsmidgen';
-import tonal from 'tonal';
 
 const secondsDivisor = 256,
   midiExtensions = { 1: 'midi', 2: 'mid' };
@@ -34,7 +30,7 @@ class SongFile {
     // let strumenti = [0x13, 0x51];
     _.each(this.eventTracks, (writeableEvents, idx) => {
       let track = this.getEmptyTrack();
-      track.setTempo(60);
+      track.setTempo(200);
       // track.setInstrument(idx, strumenti[idx]);
       this._midgenWriteEvents(writeableEvents, track);
       this.model.addTrack(track);
@@ -105,7 +101,7 @@ class SongFile {
 
     _.each(eventsToWrite, (evt, idx) => {
       let priorTime = idx > 0 ? eventsToWrite[idx - 1].absoTime : null;
-      this.relativizeNote (evt, idx, priorTime);
+      this.relativizeNote(evt, idx, priorTime);
       this.addNote(midiTrack, evt);
     });
   }
@@ -183,7 +179,7 @@ class SongFile {
 
       if (!this.pathExists(fullFileName)) {
         fileExists = false;
-        this.set('fullFileName', fullFileName)
+        this.set('fullFileName', fullFileName);
       }
       iterator++;
     }
@@ -214,7 +210,7 @@ class SongFile {
   }
 
   /**
-   * Get the contents of the song for playing. Only "on" events are passed, as 
+   * Get the contents of the song for playing. Only "on" events are passed, as
    * for use by the front-end midi players.
    * @return {Array} Array of on events with durations included.
    */

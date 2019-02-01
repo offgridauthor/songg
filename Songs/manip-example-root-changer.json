@@ -1,0 +1,70 @@
+{
+  "remark": "Rotate a chord -- example",
+  "name": "Frase-Manipulations--Snazzifier-I",
+  "composer": "Davo",
+  "manipParams": {},
+  "chords": [
+      {
+        "name": "G",
+        "chord": "M",
+        "octave": "G4"
+      }
+  ],
+  "composition": [["aphrodite", "aphrodite"]],
+  "phases": {
+      "aphrodite": {
+          "measureCount": 8,
+          "composition": [
+            "G"
+          ],
+          "noteDuration": 128,
+          "imposedFraseLength": 512,
+          "manipParams": {
+            "RootChanger": [{
+              "chord": "G",
+              "location": {
+                "index": 1
+              },
+              "data": [{
+                "octaves": 2
+              }]
+            },
+            {
+              "chord": "G",
+              "location": {
+                "index": 3
+              },
+              "data": [{
+                "octaves": 1
+              }]
+            },
+            {
+              "chord": "G",
+              "location": {
+                "index": 5
+              },
+              "data": [{
+                "octaves": -1
+              }]
+            },
+            {
+              "chord": "G",
+              "location": {
+                "index": 7
+              },
+              "data": [{
+                "octaves": 1
+              },{
+                "octaves": 1
+              }]
+            }],
+            "Arpeggiator": [
+              {
+                "chord": "G",
+                "data": [0, 64, 128, 184]
+              }
+            ]
+          }
+        }
+    }
+}

@@ -149,7 +149,6 @@ class Frase extends Segment {
    * Set the relative start time for the Frase.
    */
   setPhaseRelativeStartTime (st) {
-    // console.log('setting frase time; ', st, '' + (st - 1) / 64);
     this.set('phaseRelativeStartTime', st);
     let fnt = this.getFirstNote();
     fnt['phaseRelativeStartTime'] = st;

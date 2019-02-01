@@ -1,0 +1,68 @@
+{
+  "name": "Example",
+  "composer": "Davo",
+  "manipParams": {},
+  "remark": "The phrase repeater is straightforward. It's power is not that great on its own--put it's very powerful combined with the frase-targeted arpeggiator. \n\n Below, you will see how the repeater's 'index' property is simply used to add a note, basically to the end of the frase. but this happens pre-arpeggiation; that is, that tail-added frase is told 'where to go' by the shell implied by the arpeggiator.",
+  "chords": [
+      {
+          "name": "F",
+          "chord": "M",
+          "octave": "F4"
+      }
+  ],
+  "composition": [["aphrodite"]],
+  "phases": {
+      "aphrodite": {
+          "measureCount": 4,
+          "composition": [
+            "F"
+          ],
+          "noteDuration": 64,
+          "imposedFraseLength": 256,
+          "manipParams": {
+              "NoteRepeater": [
+                {
+                  "chord": "F",
+                  "location": {
+                    "index": 2,
+                    "range": null
+                  },
+                  "data": [
+                    {
+                      "index": [1]
+                    }
+                  ]
+                },
+                {
+                  "chord": "F",
+                  "location": {
+                    "index": 3,
+                    "range": null
+                  },
+                  "data": [
+                    {
+                      "index": [1]
+                    }
+                  ]
+                }
+              ],
+              "Arpeggiator": [
+                {
+                  "chord": "F",
+                  "location": {
+                    "index": 2
+                  },
+                  "data": [0, 64, 128, 184]
+                },
+                {
+                  "chord": "F",
+                  "location": {
+                    "index": 3
+                  },
+                  "data": [0, 64, 128, 32]
+                }
+              ]
+            }
+          }
+        }
+    }

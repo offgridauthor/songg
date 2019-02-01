@@ -1,4 +1,3 @@
-
 import FraseManipulator from './FraseManipulator.mjs';
 
 /**
@@ -16,15 +15,29 @@ class FraseNoteChanger extends FraseManipulator {
    * Change notes in order (the first "data" entry will map to first note).
    */
   ['change-in-order'] (rawNotes) {
+
     const cloned = this.clone(rawNotes),
-      nts = this.wrapNotes(cloned);
-    _.each(this.config.data, (datum, idx) => {
-      let nt = nts[idx];
+      nts = this.wrapNotes(cloned),
+      ret = [];
+
+    _.each(nts, (nt, idx) => {
+      const datum = this.config.data[idx]; // repition config for note at that index.
+      if (!datum) {
+        ret.push(nt);
+        return;
+      }
+
+      if (datum && datum.remove && datum.remove === true) {
+        return;
+      }
+
       _.each(datum, (val, key) => {
         nt.ntAttrs[key] = val;
       });
+
+      ret.push(nt);
     });
-    return nts;
+    return ret;
   }
 
   /**
