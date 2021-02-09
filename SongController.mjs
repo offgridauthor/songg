@@ -1,8 +1,8 @@
 
 import url from 'url';
-import fileList from './fileList';
+import fileList from './fileList.mjs';
 import fs from 'fs';
-import SongHandle from './SongHandle';
+import SongHandle from './SongHandle.mjs';
 
 class SongController {
   static requireExistentFile (fn) {

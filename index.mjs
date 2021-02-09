@@ -1,8 +1,8 @@
-import SongController from './SongController';
+import SongController from './SongController.mjs';
 import express from 'express';
 import _ from 'underscore';
-import utilExt from './codelibs/utilsExtension';
-import Router from './Router';
+import utilExt from './codelibs/utilsExtension.mjs';
+import Router from './Router.mjs';
 
 global.app = express();
 global._ = _;
