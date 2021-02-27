@@ -1,6 +1,6 @@
 
 import url from 'url';
-import fileList from './fileList.mjs';
+import fileList, { links } from './fileList.mjs';
 import fs from 'fs';
 import SongHandle from './SongHandle.mjs';
 
@@ -32,7 +32,9 @@ class SongController {
 
         sh.processSong();
         let augmentedResponse = _.extend(sh.browserResponse, { files: fileList, composer: data.composer });
-        response.write(`<div><a href="${augmentedResponse.midiLink}">Generated midi</a></div>`)
+        response.write(`<div>You just generated <a href="${augmentedResponse.midiLink}">${augmentedResponse.midiLink.split('/')[2]}</a></div>`)
+        response.write(`<div><h3>Compositions</h3>`)
+        response.write(links.map((link) => `<div>${link}</div>`).join(''))
         response.write(JSON.stringify(augmentedResponse))
         response.send()
     }
