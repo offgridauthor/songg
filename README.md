@@ -88,4 +88,4 @@ Tests for the Manipulators, SongHandler, and SongFile are scheduled to be comple
 ### Why JSON instead of a database?
 Using json is not a principled decision, but a convenient one. I have always planned to use a database. Those plans aren't definite yet.
 
-songg is © robert d. roe 2016-18
+songg is © robert d. roe 2016 - 2021
