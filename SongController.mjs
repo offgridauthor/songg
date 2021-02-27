@@ -4,6 +4,10 @@ import fileList, { links } from './fileList.mjs';
 import fs from 'fs';
 import SongHandle from './SongHandle.mjs';
 
+const MESSAGE_DEV = `<br><br>
+<div>Songs are generated from the json currently in /Songs/</div>
+<div>Generated copies are in /outputMidi/</div>`
+
 /**
  * Handle requests related to songs.
  */
@@ -36,6 +40,7 @@ class SongController {
         response.write(`<div><h3>Compositions</h3>`)
         response.write(links.map((link) => `<div>${link}</div>`).join(''))
         response.write(JSON.stringify(augmentedResponse))
+        response.write(MESSAGE_DEV)
         response.send()
     }
 
