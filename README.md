@@ -5,6 +5,36 @@ A data model for creating music algorithmically.
 
 In the current stage of development, the software analyzes the json song file (such as Song/Example.json), creates the default song structure, runs all defined manipulators, and saves to the Midi format. The Midi format can be opened in apps such as GarageBand (Mac) or one of its free alternatives. The Midi format is useful for musicians, but will need to be converted to another format to be listened to in most music apps.
 
+### Installation
+
+Download or clone the repo; install via yarn or npm.
+Run the index.mjs file using node. An output file is produced to public/outputMidi. (The usage instructions below will tell you what happens on running node.)
+
+Node has at last gotten an early stage of js modules. For the dev branch, therefore, no transpile is necessary, but you may need to use the --experimental-modules option on running node. (It depends on your node version.)
+
+After doing that you can use
+```bash
+npm run mon
+```
+or
+
+```bash
+yarn mon
+```
+
+Master needs significant catching up at the time of this writing. 
+
+### Immediate Use
+
+When you see that the server is running, navigate to `http://localhost:5000/songSystem`. You should see a link that allows you to download the generated midi.
+
+The midi is being generated from a json file in the `/Songs` directory. If you have the ability to play Midi, you can play the downloaded song right away! (For MacOS users, open it in GarageBand, for example.)
+
+To see where that music came from, check out json files--songs--in `/Songs`. The musical structure is described more, below; but some things are obvious. There should always be a chord dictionary and sequencing requirements; composer info, and so on.
+
+At the moment, the default song that gets generated is the first that nodejs finds in `/Songs`. (A next task is to created an index that shows all the songs and allows the user to choose which to create.)
+
+
 ### A note on the flat directory structure of the codebase
 Although the folder structure is flat, the code is not. There are two major kinds of class: the Segments, which are data models representing a song, and the manipulators, which are logical units for traversing and altering notes in the various Segments. Segments are the data model and submodel. They include the architectural sections of a song: Song, Phase (like a verse or chorus), and Frase (spelled that way to distinguish it visually against _Phase_). The major subclasses of Manipulator are SongManipulator, PhaseManipulator, and FraseManipulator. They correspond to the parts of a song.
 
@@ -13,7 +43,9 @@ Segments are in the project root and manipulators are in a folder thus named.
 There is one controller, the SongController. It handles the song by means of a SongHandler class. The SongHandler is mostly a builder that applies algorithms. A SongFile (controlled by SongHandle) does the final save to .midi.
 
 ### The front end
-This is not a front end project, yet, although the controller code is functional. The demo (not avaialable to all) is provisional, and just a starting place for futher front-end development.
+You can immediately navigate to the `/songSystem` route. A link, there, will let you do a basic download. 
+
+The project is at a great starting place for front-end development. A nice feature would be to generate any song in the fileList from a list of options (instead of automatically generating the first.)
 
 ### Overview of Processing
 
@@ -23,24 +55,6 @@ Primary json data is in two categories: (1) music-theoritical, such as chord nam
 
 [Tonal.js](https://github.com/danigb/tonal) is a music theory library for JavaScript. An example of something tonal.js allows you to do is to generate chords and scales from musical terminology such as "C major", but the library has many other music-theoretical features. The other major feature of Songg is that it allows you to export Midi tracks via [jsmidgen](https://github.com/dingram/jsmidgen). Midi is a format popular with musicians, and you can drop ".midi" or ".mid" files into other music editing applications.
 
-### Installation
-
-Download or clone the repo; install via yarn or npm.
-Run the index.mjs file using node. An output file is produced to public/outputMidi. (The usage instructions below will tell you what happens on running node.)
-
-Node has at last gotten an early stage of ES6 modules. For the dev branch, therefore, no transpile is necessary, but you will need to use the --experimental-modules option on running node.
-
-For the master branch, run
-```bash
-npm run build
-```
-
-After doing that you can use
-```bash
-npm run mon
-```
-
-Master is not production ready, but it does disallow the native use of node modules.
 
 ### Usage notes; the JSON file
 
