@@ -9,3 +9,9 @@ lib
 .gitignore
 public
 Songs/Unnamed.json
+
+# emacs
+\#*
+**/\#
+.\#*
+*~
