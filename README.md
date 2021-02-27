@@ -28,19 +28,29 @@ Primary json data is in two categories: (1) music-theoritical, such as chord nam
 Download or clone the repo; install via yarn or npm.
 Run the index.mjs file using node. An output file is produced to public/outputMidi. (The usage instructions below will tell you what happens on running node.)
 
-Node has at last gotten an early stage of ES6 modules. For the dev branch, therefore, no transpile is necessary, but you will need to use the --experimental-modules option on running node.
-
-For the master branch, run
-```bash
-npm run build
-```
+Node has at last gotten an early stage of js modules. For the dev branch, therefore, no transpile is necessary, but you may need to use the --experimental-modules option on running node. (It depends on your node version.)
 
 After doing that you can use
 ```bash
 npm run mon
 ```
+or 
+```bash
+yarn mon
+```
 
-Master is not production ready, but it does disallow the native use of node modules.
+Master needs significant catching up at the time of this writing. 
+
+### Immediate Use
+
+When you see that the server is running, navigate to `http://localhost:5000/songSystem`. You should see a link that allows you to download the generated midi.
+
+The midi is being generated from a json file in the `/Songs` directory. If you have the ability to play Midi, you can play the downloaded song right away! (For MacOS users, open it in GarageBand, for example.)
+
+To see where that music came from, check out json files--songs--in `/Songs`. The musical structure is described more, below; but some things are obvious. There should always be a chord dictionary and sequencing requirements; composer info, and so on.
+
+At the moment, the default song that gets generated is the first that nodejs finds in `/Songs`. (A next task is to created an index that shows all the songs and allows the user to choose which to create.)
+
 
 ### Usage notes; the JSON file
 
