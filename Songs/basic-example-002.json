@@ -1,0 +1,30 @@
+{
+  "remark": "Basic example two simply shows how to add an additional chord to the chord library. See tonal.js, referred to in the READMED.md, for more about chord shapes, their octaves, and other theoretical data.",
+  "name": "Basic-Example-Two",
+  "composer": "Songg Team",
+  "manipParams": {},
+  "chords": [
+      {
+        "name": "G",
+        "chord": "M",
+        "octave": "G4"
+      },
+      {
+        "name": "F",
+        "chord": "M",
+        "octave": "F4"
+      }      
+  ],
+  "phases": {
+      "aphrodite": {
+          "measureCount": 1,
+          "composition": [
+              "G", "F"
+          ],
+          "noteDuration": 128,
+          "imposedFraseLength": 512
+
+      }
+  },
+  "composition": [["aphrodite", "aphrodite"]]    
+}

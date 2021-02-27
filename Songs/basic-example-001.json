@@ -1,0 +1,25 @@
+{
+  "remark": "Basic example 1. A song has phases, which are made of measures, which are made of chords. Parts \n(1) the chords property is a dictionary of chord data. This is the pallette, if you will, for painting with music. \n(2) The 'phases' property is a list of named subobjects, which are the phases. The phases will be referred to in #3, composition, to actually make up the song. Within each phase, e.g. aphrodite, here, you use 'composition' to give a structure to the measure. The measure is simply repeated a number of times. The number of repetitions is the measureCount value from this same phase. \n(3) As mentioned in (2), the phases from (2) are lined up here. aphrodite will be played twice, in this example.",
+  "name": "Basic-Example-One",
+  "composer": "Songg Team",
+  "manipParams": {},
+  "chords": [
+      {
+        "name": "G",
+        "chord": "M",
+        "octave": "G4"
+      }
+  ],
+  "phases": {
+      "aphrodite": {
+          "measureCount": 1,
+          "composition": [
+              "G"
+          ],
+          "noteDuration": 128,
+          "imposedFraseLength": 512
+
+      }
+  },
+  "composition": [["aphrodite", "aphrodite"]]    
+}

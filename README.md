@@ -32,6 +32,9 @@ To see where that music came from, check out json files--songs--in `/Songs`. The
 
 At the moment, the default song that gets generated is the first that nodejs finds in `/Songs`. (A next task is to created an index that shows all the songs and allows the user to choose which to create.)
 
+### Basic Examples
+See songs named Basic Example for something like a tutorial. The basic examples are a short list, but growing. 
+Right now, the only explanation is in a property named "remark" within the song file itself.
 
 ### A note on the flat directory structure of the codebase
 Although the folder structure is flat, the code is not. There are two major kinds of class: the Segments, which are data models representing a song, and the manipulators, which are logical units for traversing and altering notes in the various Segments. Segments are the data model and submodel. They include the architectural sections of a song: Song, Phase (like a verse or chorus), and Frase (spelled that way to distinguish it visually against _Phase_). The major subclasses of Manipulator are SongManipulator, PhaseManipulator, and FraseManipulator. They correspond to the parts of a song.
