@@ -1,7 +1,5 @@
 
-A data model for creating music algorithmically.
-
-(This code is in the process of being converted to demonstrate ES6 and ES7.)
+A data model (with some primitive ui) for creating music algorithmically.
 
 In the current stage of development, the software analyzes the json song file (such as Song/Example.json), creates the default song structure, runs all defined manipulators, and saves to the Midi format. The Midi format can be opened in apps such as GarageBand (Mac) or one of its free alternatives. The Midi format is useful for musicians, but will need to be converted to another format to be listened to in most music apps.
 
